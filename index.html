@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Joshua McLaughlin — Computer Science graduate student at Frostburg State University. Cloud-focused projects and software engineering portfolio.">
+  <title>Joshua McLaughlin | Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg-mesh" aria-hidden="true"></div>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="#">Joshua<span>.</span></a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav" aria-label="Primary">
+        <a href="#about">About</a>
+        <a href="#skills">Skills</a>
+        <a href="#projects">Projects</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero section-inner" aria-labelledby="hero-title">
+      <span class="section-label">Portfolio</span>
+      <p class="hero-badge">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        Cloud engineering &amp; software
+      </p>
+      <h1 id="hero-title">Building reliable systems in the cloud</h1>
+      <p class="hero-lead">
+        I am <strong style="color: var(--text);">Joshua McLaughlin</strong>, a Computer Science graduate student at
+        <strong style="color: var(--text);">Frostburg State University</strong>. I focus on cloud infrastructure,
+        automation, and full-stack software—turning ideas into scalable, observable systems.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#projects">View projects</a>
+        <a class="btn btn-ghost" href="#contact">Get in touch</a>
+      </div>
+      <div class="hero-stats" role="presentation">
+        <div class="stat">
+          <strong>Cloud</strong>
+          <span>Infrastructure &amp; DevOps</span>
+        </div>
+        <div class="stat">
+          <strong>CS @ FSU</strong>
+          <span>Graduate studies</span>
+        </div>
+        <div class="stat">
+          <strong>Open to roles</strong>
+          <span>Cloud &amp; software engineering</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="section-inner">
+      <span class="section-label">About</span>
+      <h2>Background</h2>
+      <div class="about-grid">
+        <div>
+          <p>
+            I am pursuing opportunities where I can design and operate cloud-native applications—containers,
+            CI/CD, infrastructure as code, and observability. I enjoy the full lifecycle: from architecture
+            sketches to production deployments and iteration based on real metrics.
+          </p>
+          <p>
+            Alongside cloud work, I build and ship software across the stack. This site highlights both
+            cloud-centric projects and other technical work so recruiters and hiring managers can see the breadth
+            of what I have built.
+          </p>
+        </div>
+        <aside class="about-card">
+          <h3>Education</h3>
+          <div class="edu-line">
+            <strong>Frostburg State University</strong>
+            <span class="edu-meta">Frostburg, MD</span>
+          </div>
+          <p class="edu-meta" style="margin-bottom: 0;">
+            M.S. / graduate studies in Computer Science — update with your degree title and expected graduation.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="skills" class="section-inner">
+      <span class="section-label">Skills</span>
+      <h2>Tools &amp; focus areas</h2>
+      <p>Swap these pills for your real stack—keep cloud tags visible so reviewers scan your profile quickly.</p>
+      <div class="skills-wrap">
+        <span class="skill-pill cloud">AWS</span>
+        <span class="skill-pill cloud">Azure / GCP</span>
+        <span class="skill-pill cloud">Docker &amp; Kubernetes</span>
+        <span class="skill-pill cloud">Terraform / IaC</span>
+        <span class="skill-pill cloud">CI/CD</span>
+        <span class="skill-pill">Python</span>
+        <span class="skill-pill">TypeScript / JavaScript</span>
+        <span class="skill-pill">Linux</span>
+        <span class="skill-pill">Git</span>
+      </div>
+    </section>
+
+    <section id="projects" class="section-inner">
+      <span class="section-label">Work</span>
+      <h2>Projects</h2>
+      <p>
+        Replace the placeholders below with your repositories: one sentence each, link to GitHub and live demos when
+        you have them. Lead with cloud projects, then other work.
+      </p>
+      <div class="projects-grid">
+        <article class="project-card featured">
+          <div class="project-tags">
+            <span class="tag">Cloud</span>
+            <span class="tag">IaC</span>
+          </div>
+          <h3>Serverless API on AWS</h3>
+          <p>
+            Example: API Gateway, Lambda, and DynamoDB with Terraform. Add metrics with CloudWatch and describe
+            how you structured environments (dev/stage/prod).
+          </p>
+          <div class="project-links">
+            <a href="https://github.com/yourusername" rel="noopener noreferrer">GitHub</a>
+            <a href="#" rel="noopener noreferrer">Live demo</a>
+          </div>
+        </article>
+        <article class="project-card featured">
+          <div class="project-tags">
+            <span class="tag">Cloud</span>
+            <span class="tag">Containers</span>
+          </div>
+          <h3>Kubernetes microservice</h3>
+          <p>
+            Example: containerized service on EKS or AKS, Helm charts, ingress, and a short note on how you handle
+            secrets and scaling.
+          </p>
+          <div class="project-links">
+            <a href="https://github.com/yourusername" rel="noopener noreferrer">GitHub</a>
+          </div>
+        </article>
+        <article class="project-card">
+          <div class="project-tags">
+            <span class="tag other">Software</span>
+          </div>
+          <h3>Full-stack web app</h3>
+          <p>
+            Example: a non-cloud project that still shows design, APIs, and testing—great for rounding out your
+            profile.
+          </p>
+          <div class="project-links">
+            <a href="https://github.com/yourusername" rel="noopener noreferrer">GitHub</a>
+          </div>
+        </article>
+        <article class="project-card">
+          <div class="project-tags">
+            <span class="tag other">Open source</span>
+          </div>
+          <h3>Tooling or library</h3>
+          <p>
+            Example: CLI tool, library, or coursework artifact you are proud of—link the README and any CI badge.
+          </p>
+          <div class="project-links">
+            <a href="https://github.com/yourusername" rel="noopener noreferrer">GitHub</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="contact" class="section-inner">
+      <span class="section-label">Contact</span>
+      <h2>Let’s connect</h2>
+      <div class="contact-block">
+        <p>
+          I am open to internships, new graduate roles, and full-time software / cloud positions. Update the links
+          below with your profiles and a professional email.
+        </p>
+        <div class="contact-links">
+          <a href="mailto:you@example.com">Email</a>
+          <a href="https://github.com/yourusername" rel="noopener noreferrer">GitHub</a>
+          <a href="https://www.linkedin.com/in/yourprofile" rel="noopener noreferrer">LinkedIn</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© <span id="year"></span> Joshua McLaughlin. Built for GitHub Pages and job applications.</p>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+  <script src="script.js" defer></script>
+</body>
+</html>
