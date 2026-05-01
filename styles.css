@@ -1,4 +1,4 @@
-/* Portfolio — Joshua McLaughlin */
+/* Portfolio: Joshua McLaughlin */
 :root {
   --bg-deep: #0a0e14;
   --bg-card: #121820;
@@ -559,11 +559,18 @@ p {
   margin-bottom: 0;
 }
 
-.project-detail-steps strong {
+/* Step title only; inline <strong> inside paragraphs must stay inline */
+.project-detail-steps > li > strong:first-child {
   color: var(--text);
   display: block;
   margin-bottom: 6px;
   font-size: 1rem;
+}
+
+.project-detail-steps p strong {
+  display: inline;
+  color: var(--text);
+  font-weight: 600;
 }
 
 .project-detail-steps p {
@@ -580,6 +587,14 @@ p {
   gap: 32px;
   margin-top: 24px;
   max-width: 100%;
+}
+
+/* Single screenshot: use more horizontal space than the default step column */
+.project-detail-step-media--wide {
+  width: min(1320px, calc(100vw - 24px));
+  max-width: none;
+  margin-left: 50%;
+  transform: translateX(-50%);
 }
 
 .project-detail-figure--step {

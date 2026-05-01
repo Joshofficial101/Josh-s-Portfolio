@@ -60,7 +60,7 @@
             alt="Diagram of AWS architecture: user request flows through Route 53 and Internet Gateway into a VPC, public subnet, security group rules for HTTP HTTPS SSH, EC2 instance running web server and MySQL, and attached EBS volume for persistent storage."
             loading="lazy"
           >
-          <figcaption>High-level AWS layout for this deployment—DNS, VPC networking, EC2 with LAMP/MySQL, security groups, and EBS storage.</figcaption>
+          <figcaption>High-level AWS layout for this deployment: DNS, VPC networking, EC2 with LAMP/MySQL, security groups, and EBS storage.</figcaption>
         </figure>
 
         <section class="project-detail-section" aria-labelledby="pd-launch">
@@ -72,7 +72,7 @@
             <li>
               <strong>Account &amp; IAM</strong>
               <p>
-                I avoided day-to-day work on the AWS root user and instead relied on IAM users scoped for everyday administration versus automation/project-focused CLI credentials—credentials stayed manageable while IAM—not inline secrets everywhere—handled authorization boundaries.
+                I avoided day-to-day work on the AWS root user and instead relied on IAM users scoped for everyday administration versus automation/project-focused CLI credentials. Credentials stayed manageable while IAM handled authorization boundaries instead of scattering inline secrets everywhere.
               </p>
               <p>
                 Both identities live inside an IAM user group with administrator-aligned policies attached at group scope, instead of duplicating policies on each user. Below are snapshots from the IAM Users console and the shared admin group.
@@ -84,7 +84,7 @@
                     alt="Screenshot of AWS IAM Users listing showing dedicated IAM identities for administration and project CLI access with console and programmatic credentials configured."
                     loading="lazy"
                   >
-                  <figcaption>IAM Users — dedicated identities instead of working through root.</figcaption>
+                  <figcaption>IAM Users: dedicated identities instead of working through root.</figcaption>
                 </figure>
                 <figure class="project-detail-figure project-detail-figure--step">
                   <img
@@ -92,20 +92,20 @@
                     alt="Screenshot of AWS IAM User groups listing showing admin group with members and defined permissions policies attached."
                     loading="lazy"
                   >
-                  <figcaption>IAM User groups — shared admin group carries permissions once.</figcaption>
+                  <figcaption>IAM User groups: shared admin group carries permissions once.</figcaption>
                 </figure>
               </div>
             </li>
             <li>
               <strong>Domain (Route&nbsp;53)</strong>
               <p>
-                I registered the domain through Route&nbsp;53 and used it as the anchor for public DNS later—once I had a stable IP pointing at the instance (Elastic IP in step&nbsp;8).
+                I registered the domain through Route&nbsp;53 and used it as the anchor for public DNS later, once I had a stable IP pointing at the instance (Elastic IP in step&nbsp;8).
               </p>
             </li>
             <li>
               <strong>VPC &amp; Internet Gateway</strong>
               <p>
-                I created a VPC for the environment and attached an Internet Gateway to it so the VPC could exchange traffic with the internet—the prerequisite for a public-facing subnet and inbound HTTPS/HTTP.
+                I created a VPC for the environment and attached an Internet Gateway to it so the VPC could exchange traffic with the internet, which is the prerequisite for a public-facing subnet and inbound HTTPS/HTTP.
               </p>
               <div class="project-detail-step-media">
                 <figure class="project-detail-figure project-detail-figure--step">
@@ -127,7 +127,7 @@
             <li>
               <strong>Public subnet &amp; routing</strong>
               <p>
-                Inside the VPC I configured subnets and route tables so traffic destined for the internet (<code class="project-detail-code">0.0.0.0/0</code>) could reach the Internet Gateway—matching the path from the architecture diagram into my VPC.
+                Inside the VPC I configured subnets and route tables so traffic destined for the internet (<code class="project-detail-code">0.0.0.0/0</code>) could reach the Internet Gateway, matching the path from the architecture diagram into my VPC.
               </p>
               <p>
               <strong>Resource map</strong> shows subnets across multiple <code class="project-detail-code">us-east-1</code> availability zones tied to the shared route table and the network connection.
@@ -139,17 +139,17 @@
                     alt="AWS VPC resource map for Paintball1 VPC showing subnets in multiple availability zones linked to the route table and Paintball internet gateway connection."
                     loading="lazy"
                   >
-                  <figcaption>VPC resource map — subnets, route table, and gateway connection in one view.</figcaption>
+                  <figcaption>VPC resource map: subnets, route table, and gateway connection in one view.</figcaption>
                 </figure>
               </div>
             </li>
             <li>
               <strong>Security groups</strong>
               <p>
-                From the EC2 console I opened my instance and used the <strong>Security</strong> tab to review the attached security group and rules in context—inbound TCP for SSH&nbsp;(22), HTTP&nbsp;(80), and HTTPS&nbsp;(443), plus the default outbound rule allowing responses and package installs during setup.
+                From the EC2 console I opened my instance and used the <strong>Security</strong> tab to review the attached security group and rules in context (inbound TCP for SSH&nbsp;(22), HTTP&nbsp;(80), and HTTPS&nbsp;(443), plus the default outbound rule allowing responses and package installs during setup).
               </p>
               <p>
-                This reflects a straightforward lab-style perimeter; in production I’d tighten SSH (avoid <code class="project-detail-code">0.0.0.0/0</code> on port&nbsp;22—prefer my IP or AWS Systems Manager Session Manager) while keeping web ports scoped to what the app actually needs.
+                This reflects a straightforward lab-style perimeter; in production I’d tighten SSH (avoid <code class="project-detail-code">0.0.0.0/0</code> on port&nbsp;22; prefer my IP or AWS Systems Manager Session Manager) while keeping web ports scoped to what the app actually needs.
               </p>
               <div class="project-detail-step-media">
                 <figure class="project-detail-figure project-detail-figure--step">
@@ -158,21 +158,30 @@
                     alt="EC2 instance Security tab showing attached security group with inbound rules for SSH, HTTPS, and HTTP and outbound allow-all rule."
                     loading="lazy"
                   >
-                  <figcaption>EC2 → Security — inbound/outbound rules for the instance’s security group.</figcaption>
+                  <figcaption>EC2 → Security: inbound/outbound rules for the instance’s security group.</figcaption>
                 </figure>
               </div>
             </li>
             <li>
               <strong>EC2 instance</strong>
               <p>
-                I launched an Ubuntu EC2 instance into a public subnet with the right security group and key pair so I could SSH in for installation and troubleshooting—AMI choice, instance type, and subnet placement were all validated against cost vs capacity for this workload.
+                I launched an Ubuntu EC2 instance into a public subnet with the right security group and key pair so I could SSH in for installation and troubleshooting. AMI choice, instance type, and subnet placement were all validated against cost vs capacity for this workload.
               </p>
             </li>
             <li>
               <strong>EBS storage</strong>
               <p>
-                The instance ran with EBS-backed storage—AWS provisioning attaches a root volume by default; the diagram treats persistent disk explicitly because OS, application, and database files all need durable block storage even when traffic spikes aren’t huge yet.
+                The instance ran with EBS-backed storage. AWS provisioning attaches a root volume by default; the diagram treats persistent disk explicitly because OS, application, and database files all need durable block storage even when traffic spikes aren’t huge yet.
               </p>
+              <div class="project-detail-step-media project-detail-step-media--wide">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/ebs-volume-console.png"
+                    alt="AWS EC2 Volumes console showing an attached gp3 EBS volume in use with size, IOPS, throughput, availability zone, and attached instance."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
             </li>
             <li>
               <strong>Elastic IP &amp; Route&nbsp;53</strong>
@@ -183,7 +192,7 @@
             <li>
               <strong>Stack install &amp; deploy</strong>
               <p>
-                Over SSH I installed and configured Apache and PHP, deployed the application files to the server, and set up MySQL with the schema and data needed for equipment reservations—bringing the hosted stack in line with the architecture diagram’s EC2 → web + database slice.
+                Over SSH I installed and configured Apache and PHP, deployed the application files to the server, and set up MySQL with the schema and data needed for equipment reservations, bringing the hosted stack in line with the architecture diagram’s EC2 → web + database slice.
               </p>
             </li>
           </ol>
