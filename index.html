@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Joshua McLaughlin — Computer Science graduate student at Frostburg State University. Cloud-focused projects and software engineering portfolio.">
+  <meta name="description" content="Joshua McLaughlin — Computer Science graduate (B.S., Frostburg State University, 2025). Cloud-focused projects and software engineering portfolio.">
   <title>Joshua McLaughlin | Portfolio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
 
   <header class="site-header">
     <div class="header-inner">
-      <a class="logo" href="#">Joshua McLaughlin<span></span></a>
+      <a class="logo" href="index.html">Joshua McLaughlin<span></span></a>
       <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
@@ -30,37 +30,26 @@
 
   <main id="main">
     <section class="hero section-inner" aria-labelledby="hero-title">
-      <span class="section-label">Portfolio</span>
-      <p class="hero-badge">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-        </svg>
-        Cloud engineering &amp; software
-      </p>
+      <span class="section-label">Portfolio</span>  
       <h1 id="hero-title">Building reliable systems in the cloud</h1>
       <p class="hero-lead">
-        Hi! I'm <strong style="color: var(--text);">Joshua McLaughlin</strong>, a Computer Science graduate student from
-        <strong style="color: var(--text);">Frostburg State University</strong>. I focus on cloud infrastructure,
+        Hi! I'm <strong style="color: var(--text);">Joshua McLaughlin</strong>. I focus on cloud infrastructure,
         automation, and turning ideas into scalable, working systems.
       </p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="#projects">View projects</a>
         <a class="btn btn-ghost" href="#contact">Get in touch</a>
       </div>
-      <div class="hero-stats" role="presentation">
-        <div class="stat">
-          <strong>Cloud</strong>
-          <span>Infrastructure &amp; DevOps</span>
+      <aside class="about-card hero-education-card" aria-label="Education">
+        <h3>Education</h3>
+        <div class="edu-line">
+          <strong>Frostburg State University</strong>
+          <span class="edu-meta">Frostburg, MD</span>
         </div>
-        <div class="stat">
-          <strong>CS @ FSU</strong>
-          <span>Graduate studies</span>
-        </div>
-        <div class="stat">
-          <strong>Open to roles</strong>
-          <span>Cloud &amp; software engineering</span>
-        </div>
-      </div>
+        <p class="edu-meta" style="margin-bottom: 0;">
+          Bachelor of Science (B.S.) in Computer Science, Class of 2025.
+        </p>
+      </aside>
     </section>
 
     <section id="about" class="section-inner">
@@ -69,14 +58,7 @@
       <div class="about-grid">
         <div>
           <p>
-            I am pursuing opportunities where I can design and operate cloud-native applications—containers,
-            CI/CD, infrastructure as code, and observability. I enjoy the full lifecycle: from architecture
-            sketches to production deployments and iteration based on real metrics.
-          </p>
-          <p>
-            Alongside cloud work, I build and ship software across the stack. This site highlights both
-            cloud-centric projects and other technical work so recruiters and hiring managers can see the breadth
-            of what I have built.
+            My CS coursework at Frostburg State gave me a solid foundation, but the problems I kept coming back to were outside the IDE. How builds become deployments, how services behave under load, how they scale vertically and horizontally based on demand, and what actually breaks in production. Working through those problems in real projects has helped me apply what I've learned especially with AWS and cloud work.
           </p>
         </div>
         <aside class="about-card">
@@ -86,7 +68,7 @@
             <span class="edu-meta">Frostburg, MD</span>
           </div>
           <p class="edu-meta" style="margin-bottom: 0;">
-            M.S. / graduate studies in Computer Science — update with your degree title and expected graduation.
+            Bachelor of Science (B.S.) in Computer Science, Class of 2025.
           </p>
         </aside>
       </div>
@@ -95,17 +77,16 @@
     <section id="skills" class="section-inner">
       <span class="section-label">Skills</span>
       <h2>Tools &amp; focus areas</h2>
-      <p>Swap these pills for your real stack—keep cloud tags visible so reviewers scan your profile quickly.</p>
       <div class="skills-wrap">
         <span class="skill-pill cloud">AWS</span>
-        <span class="skill-pill cloud">Azure / GCP</span>
-        <span class="skill-pill cloud">Docker &amp; Kubernetes</span>
-        <span class="skill-pill cloud">Terraform / IaC</span>
+        <span class="skill-pill cloud">Docker</span>
         <span class="skill-pill cloud">CI/CD</span>
         <span class="skill-pill">Python</span>
-        <span class="skill-pill">TypeScript / JavaScript</span>
-        <span class="skill-pill">Linux</span>
-        <span class="skill-pill">Git</span>
+        <span class="skill-pill">SQL</span>
+        <span class="skill-pill">Linux (Ubuntu)</span>
+        <span class="skill-pill">Git/GitHub</span>
+        <span class="skill-pill">AI Tools</span>
+        <span class="skill-pill">Agile/Scrum</span>
       </div>
     </section>
 
@@ -113,60 +94,37 @@
       <span class="section-label">Work</span>
       <h2>Projects</h2>
       <div class="projects-grid">
-        <article class="project-card featured">
-          <div class="project-tags">
-            <span class="tag">Cloud</span>
-            <span class="tag">IaC</span>
-          </div>
-          <h3>Serverless API on AWS</h3>
-          <p>
-            Example: API Gateway, Lambda, and DynamoDB with Terraform. Add metrics with CloudWatch and describe
-            how you structured environments (dev/stage/prod).
-          </p>
-          <div class="project-links">
-            <a href="https://github.com/yourusername" rel="noopener noreferrer">GitHub</a>
-            <a href="#" rel="noopener noreferrer">Live demo</a>
-          </div>
-        </article>
-        <article class="project-card featured">
-          <div class="project-tags">
-            <span class="tag">Cloud</span>
-            <span class="tag">Containers</span>
-          </div>
-          <h3>Kubernetes microservice</h3>
-          <p>
-            Example: containerized service on EKS or AKS, Helm charts, ingress, and a short note on how you handle
-            secrets and scaling.
-          </p>
-          <div class="project-links">
-            <a href="https://github.com/yourusername" rel="noopener noreferrer">GitHub</a>
-          </div>
-        </article>
-        <article class="project-card">
-          <div class="project-tags">
-            <span class="tag other">Software</span>
-          </div>
-          <h3>Full-stack web app</h3>
-          <p>
-            Example: a non-cloud project that still shows design, APIs, and testing—great for rounding out your
-            profile.
-          </p>
-          <div class="project-links">
-            <a href="https://github.com/yourusername" rel="noopener noreferrer">GitHub</a>
-          </div>
-        </article>
-        <article class="project-card">
-          <div class="project-tags">
-            <span class="tag other">Open source</span>
-          </div>
-          <h3>Tooling or library</h3>
-          <p>
-            Example: CLI tool, library, or coursework artifact you are proud of—link the README and any CI badge.
-          </p>
-          <div class="project-links">
-            <a href="https://github.com/yourusername" rel="noopener noreferrer">GitHub</a>
-          </div>
-        </article>
+        <a href="project-serverless-aws.html" class="project-card-link" aria-labelledby="project-card-aws-title">
+          <article class="project-card featured">
+            <div class="project-tags">
+              <span class="tag">AWS</span>
+              <span class="tag">Docker</span>
+              <span class="tag">SQL</span>
+              <span class="tag">Linux</span>
+              <span class="tag">PHP</span>
+              <span class="tag">Git</span>
+            </div>
+            <h3 id="project-card-aws-title">AWS Cloud Hosted Database Management System</h3>
+            <p>
+              A LAMP Application hosted on AWS using Ec2, and containerized with Docker. Using MySQL as the database.
+            </p>
+            <p class="project-card-cta"><span class="project-card-cta-text">Project write-up</span></p>
+          </article>
+        </a>
+        <a href="project-kubernetes.html" class="project-card-link" aria-labelledby="project-card-k8s-title">
+          <article class="project-card featured">
+            <div class="project-tags">
+              <span class="tag">Cloud</span>
+              <span class="tag">Containers</span>
+            </div>
+            <h3 id="project-card-k8s-title">Kubernetes microservice</h3>
+            <p>
+              Example: containerized service on EKS or AKS, Helm charts, ingress, and a short note on how you handle
+              secrets and scaling.
+            </p>
+            <p class="project-card-cta"><span class="project-card-cta-text">Project write-up</span></p>
+          </article>
+        </a>
       </div>
     </section>
 

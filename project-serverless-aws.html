@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AWS-hosted LAMP rental-management system on EC2 with Route 53, VPC networking, Elastic IP, and MySQL. Originally explored Docker; redesigned for cost. Joshua McLaughlin portfolio project.">
+  <title>AWS Cloud Hosted Database Management System | Joshua McLaughlin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html">Joshua McLaughlin<span></span></a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html#about">About</a>
+        <a href="index.html#skills">Skills</a>
+        <a href="index.html#projects">Projects</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <article class="section-inner project-detail">
+      <a class="project-back" href="index.html#projects">← Back to projects</a>
+      <header class="project-detail-header">
+        <span class="section-label">Project</span>
+        <div class="project-tags">
+          <span class="tag">AWS</span>
+          <span class="tag">SQL</span>
+          <span class="tag">Linux</span>
+          <span class="tag">PHP</span>
+          <span class="tag">Git</span>
+        </div>
+        <h1>AWS Cloud Hosted Database Management System</h1>
+      </header>
+
+      <div class="project-detail-body">
+        <section class="project-detail-section" aria-labelledby="pd-overview">
+          <h2 id="pd-overview">Overview</h2>
+          <p>
+            This LAMP application is hosted on AWS (EC2), MySQL as the database.
+            The goal of this project was to track all rental equipment used by (Paintball Sports Land Inc).
+            While keeping track of the equipment and the customers that rented it. The website also keeps track of party reservations made by the customers.
+            Along with the fields that are rented out and are currently in use, so no overbooking of fields or equipment can occur.
+          </p>
+        </section>
+
+        <figure class="project-detail-figure">
+          <img
+            src="assets/aws-architecture-diagram.png"
+            alt="Diagram of AWS architecture: user request flows through Route 53 and Internet Gateway into a VPC, public subnet, security group rules for HTTP HTTPS SSH, EC2 instance running web server and MySQL, and attached EBS volume for persistent storage."
+            loading="lazy"
+          >
+          <figcaption>High-level AWS layout for this deployment—DNS, VPC networking, EC2 with LAMP/MySQL, security groups, and EBS storage.</figcaption>
+        </figure>
+
+        <section class="project-detail-section" aria-labelledby="pd-launch">
+          <h2 id="pd-launch">Launching the project</h2>
+          <p class="project-detail-intro">
+            I initially experimented with a container-based setup on AWS. After revisiting monthly costs and what this workload actually needed, I redesigned the deployment around a simpler EC2-hosted LAMP stack. Below is the path I followed end-to-end, including an Elastic IP so DNS stays stable.
+          </p>
+          <ol class="project-detail-steps">
+            <li>
+              <strong>Account &amp; IAM</strong>
+              <p>
+                I avoided day-to-day work on the AWS root user and instead relied on IAM users scoped for everyday administration versus automation/project-focused CLI credentials—credentials stayed manageable while IAM—not inline secrets everywhere—handled authorization boundaries.
+              </p>
+              <p>
+                Both identities live inside an IAM user group with administrator-aligned policies attached at group scope, instead of duplicating policies on each user. Below are snapshots from the IAM Users console and the shared admin group.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/iam-users.png"
+                    alt="Screenshot of AWS IAM Users listing showing dedicated IAM identities for administration and project CLI access with console and programmatic credentials configured."
+                    loading="lazy"
+                  >
+                  <figcaption>IAM Users — dedicated identities instead of working through root.</figcaption>
+                </figure>
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/iam-groups-admin.png"
+                    alt="Screenshot of AWS IAM User groups listing showing admin group with members and defined permissions policies attached."
+                    loading="lazy"
+                  >
+                  <figcaption>IAM User groups — shared admin group carries permissions once.</figcaption>
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Domain (Route&nbsp;53)</strong>
+              <p>
+                I registered the domain through Route&nbsp;53 and used it as the anchor for public DNS later—once I had a stable IP pointing at the instance (Elastic IP in step&nbsp;8).
+              </p>
+            </li>
+            <li>
+              <strong>VPC &amp; Internet Gateway</strong>
+              <p>
+                I created a VPC for the environment and attached an Internet Gateway to it so the VPC could exchange traffic with the internet—the prerequisite for a public-facing subnet and inbound HTTPS/HTTP.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/vpc-console.png"
+                    alt="AWS VPC console listing VPC named Paintball1 in Available state with IPv4 CIDR shown."
+                    loading="lazy"
+                  >
+                </figure>
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/internet-gateway-console.png"
+                    alt="AWS Internet Gateways console showing gateway named Paintball attached to the VPC."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Public subnet &amp; routing</strong>
+              <p>
+                Inside the VPC I configured subnets and route tables so traffic destined for the internet (<code class="project-detail-code">0.0.0.0/0</code>) could reach the Internet Gateway—matching the path from the architecture diagram into my VPC.
+              </p>
+              <p>
+              <strong>Resource map</strong> shows subnets across multiple <code class="project-detail-code">us-east-1</code> availability zones tied to the shared route table and the network connection.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/vpc-resource-map-subnets-routing.png"
+                    alt="AWS VPC resource map for Paintball1 VPC showing subnets in multiple availability zones linked to the route table and Paintball internet gateway connection."
+                    loading="lazy"
+                  >
+                  <figcaption>VPC resource map — subnets, route table, and gateway connection in one view.</figcaption>
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Security groups</strong>
+              <p>
+                From the EC2 console I opened my instance and used the <strong>Security</strong> tab to review the attached security group and rules in context—inbound TCP for SSH&nbsp;(22), HTTP&nbsp;(80), and HTTPS&nbsp;(443), plus the default outbound rule allowing responses and package installs during setup.
+              </p>
+              <p>
+                This reflects a straightforward lab-style perimeter; in production I’d tighten SSH (avoid <code class="project-detail-code">0.0.0.0/0</code> on port&nbsp;22—prefer my IP or AWS Systems Manager Session Manager) while keeping web ports scoped to what the app actually needs.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/ec2-security-groups.png"
+                    alt="EC2 instance Security tab showing attached security group with inbound rules for SSH, HTTPS, and HTTP and outbound allow-all rule."
+                    loading="lazy"
+                  >
+                  <figcaption>EC2 → Security — inbound/outbound rules for the instance’s security group.</figcaption>
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>EC2 instance</strong>
+              <p>
+                I launched an Ubuntu EC2 instance into a public subnet with the right security group and key pair so I could SSH in for installation and troubleshooting—AMI choice, instance type, and subnet placement were all validated against cost vs capacity for this workload.
+              </p>
+            </li>
+            <li>
+              <strong>EBS storage</strong>
+              <p>
+                The instance ran with EBS-backed storage—AWS provisioning attaches a root volume by default; the diagram treats persistent disk explicitly because OS, application, and database files all need durable block storage even when traffic spikes aren’t huge yet.
+              </p>
+            </li>
+            <li>
+              <strong>Elastic IP &amp; Route&nbsp;53</strong>
+              <p>
+                I allocated an Elastic IP and associated it with the instance so stop/start cycles wouldn’t break inbound DNS. Then I pointed Route&nbsp;53’s record set at that Elastic IP so the domain reliably resolved to the running server.
+              </p>
+            </li>
+            <li>
+              <strong>Stack install &amp; deploy</strong>
+              <p>
+                Over SSH I installed and configured Apache and PHP, deployed the application files to the server, and set up MySQL with the schema and data needed for equipment reservations—bringing the hosted stack in line with the architecture diagram’s EC2 → web + database slice.
+              </p>
+            </li>
+          </ol>
+        </section>
+
+        <p class="project-detail-links">
+          <a href="#" rel="noopener noreferrer">GitHub repository</a>
+        </p>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>© <span id="year"></span> Joshua McLaughlin. Built for GitHub Pages and job applications.</p>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+  <script src="script.js" defer></script>
+</body>
+</html>
