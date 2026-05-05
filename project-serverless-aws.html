@@ -72,10 +72,10 @@
             <li>
               <strong>Account &amp; IAM</strong>
               <p>
-                I avoided day-to-day work on the AWS root user and instead relied on IAM users scoped for everyday administration versus automation/project-focused CLI credentials. Credentials stayed manageable while IAM handled authorization boundaries instead of scattering inline secrets everywhere.
+                I avoided day to day work on the AWS root user and instead relied on IAM users scoped for everyday administration tasks, this allowed me to have the good IAM security practices in place and not have to worry about the root user.
               </p>
               <p>
-                Both identities live inside an IAM user group with administrator-aligned policies attached at group scope, instead of duplicating policies on each user. Below are snapshots from the IAM Users console and the shared admin group.
+                Both identities live inside an IAM user group with administrator aligned policies attached at the base level. Below are snapshots from the IAM Users console and the shared admin group.
               </p>
               <div class="project-detail-step-media">
                 <figure class="project-detail-figure project-detail-figure--step">
@@ -105,7 +105,7 @@
             <li>
               <strong>VPC &amp; Internet Gateway</strong>
               <p>
-                I created a VPC for the environment and attached an Internet Gateway to it so the VPC could exchange traffic with the internet, which is the prerequisite for a public-facing subnet and inbound HTTPS/HTTP.
+                I created a VPC for the environment and attached an Internet Gateway to it so the VPC could exchange traffic with the internet, which is the prerequisite for a public facing subnet and inbound HTTPS/HTTP.
               </p>
               <div class="project-detail-step-media">
                 <figure class="project-detail-figure project-detail-figure--step">
@@ -146,16 +146,16 @@
             <li>
               <strong>Security groups</strong>
               <p>
-                From the EC2 console I opened my instance and used the <strong>Security</strong> tab to review the attached security group and rules in context (inbound TCP for SSH&nbsp;(22), HTTP&nbsp;(80), and HTTPS&nbsp;(443), plus the default outbound rule allowing responses and package installs during setup).
+                From the EC2 console I opened my instance and used the <strong>Security</strong> tab to review the attached security group and rules I set up previously (inbound TCP for SSH&nbsp;(22), HTTP&nbsp;(80), and HTTPS&nbsp;(443), plus the default outbound rule allowing responses and package installs during setup).
               </p>
               <p>
-                This reflects a straightforward lab-style perimeter; in production I’d tighten SSH (avoid <code class="project-detail-code">0.0.0.0/0</code> on port&nbsp;22; prefer my IP or AWS Systems Manager Session Manager) while keeping web ports scoped to what the app actually needs.
+                SSH is limited to a single source IP which is my public IP (<code class="project-detail-code">/32</code>); HTTP and HTTPS stay open to <code class="project-detail-code">0.0.0.0/0</code> for the web app. Other secure ways of accessing the instance are through AWS Systems Manager Session Manager or EC2 Instance Connect.
               </p>
               <div class="project-detail-step-media">
                 <figure class="project-detail-figure project-detail-figure--step">
                   <img
                     src="assets/ec2-security-groups.png"
-                    alt="EC2 instance Security tab showing attached security group with inbound rules for SSH, HTTPS, and HTTP and outbound allow-all rule."
+                    alt="EC2 instance Security tab with inbound rules: SSH port 22 from a single public IP, HTTPS 443 and HTTP 80 from 0.0.0.0/0, plus outbound allow-all."
                     loading="lazy"
                   >
                   <figcaption>EC2 → Security: inbound/outbound rules for the instance’s security group.</figcaption>
@@ -171,7 +171,7 @@
             <li>
               <strong>EBS storage</strong>
               <p>
-                The instance ran with EBS-backed storage. AWS provisioning attaches a root volume by default; the diagram treats persistent disk explicitly because OS, application, and database files all need durable block storage even when traffic spikes aren’t huge yet.
+                The instance ran with EBS backed storage. AWS provisioning attaches a root volume by default; the diagram treats persistent disk explicitly because OS, application, and database files all need durable block storage even when traffic spikes aren’t huge yet. For a larger application I would use a RDS instance for the database and a larger instance type for the web server.
               </p>
               <div class="project-detail-step-media project-detail-step-media--wide">
                 <figure class="project-detail-figure project-detail-figure--step">
@@ -192,15 +192,12 @@
             <li>
               <strong>Stack install &amp; deploy</strong>
               <p>
-                Over SSH I installed and configured Apache and PHP, deployed the application files to the server, and set up MySQL with the schema and data needed for equipment reservations, bringing the hosted stack in line with the architecture diagram’s EC2 → web + database slice.
+                Over SSH I installed and configured Apache and PHP, deployed the application files to the server, and set up MySQL with the schema and data needed for equipment reservations, bringing the hosted stack in line with the above architecture diagram.
               </p>
             </li>
           </ol>
         </section>
 
-        <p class="project-detail-links">
-          <a href="#" rel="noopener noreferrer">GitHub repository</a>
-        </p>
       </div>
     </article>
   </main>
