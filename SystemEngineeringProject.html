@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="System engineering portfolio hub: end to end projects spanning cloud services, Linux tooling, security minded setup, and hands on verification. Joshua McLaughlin.">
+  <title>System Engineering (project hub) | Joshua McLaughlin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html">Joshua McLaughlin<span></span></a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html#about">About</a>
+        <a href="index.html#skills">Skills</a>
+        <a href="index.html#projects">Projects</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <article class="section-inner project-detail">
+      <a class="project-back" href="index.html#projects">← Back to projects</a>
+      <header class="project-detail-header">
+        <span class="section-label">Projects</span>
+        <div class="project-tags">
+          <span class="tag">Cloud</span>
+          <span class="tag">Containers</span>
+        </div>
+        <h1>System Engineering</h1>
+      </header>
+      <div class="project-detail-body">
+        <section class="project-detail-section" aria-labelledby="pd-syseng-intro">
+          <h2 id="pd-syseng-intro">Overview</h2>
+          <p class="project-detail-intro">
+            I have always been a builder who enjoys figuring out how complex systems work from the inside out. Whether I am troubleshooting or deploying a secure cloud infrastructure, I focus on the small details that ensure long term reliability.
+          </p>
+        </section>
+
+        <section class="project-detail-section" aria-labelledby="pd-syseng-projects">
+          <h2 id="pd-syseng-projects">Projects</h2>
+          <div class="projects-grid projects-grid--detail">
+            <a href="syseng-project-1.html" class="project-card-link" aria-labelledby="syseng-card-1-title">
+              <article class="project-card featured">
+                <div class="project-tags">
+                  <span class="tag">Amazon Connect</span>
+                  <span class="tag">AWS</span>
+                </div>
+                <h3 id="syseng-card-1-title">Amazon Connect contact center</h3>
+                <p>Provision Connect, claim a number, build an inbound flow, tighten security profiles, and verify with a live call.</p>
+                <p class="project-card-cta"><span class="project-card-cta-text">Project write-up</span></p>
+              </article>
+            </a>
+            <a href="syseng-project-2.html" class="project-card-link" aria-labelledby="syseng-card-2-title">
+              <article class="project-card featured">
+                <div class="project-tags">
+                  <span class="tag">Linux</span>
+                  <span class="tag">Clang</span>
+                </div>
+                <h3 id="syseng-card-2-title">C compilation and syntax tree lab</h3>
+                <p>Ubuntu VM, Clang token dumps, and AST inspection for assignments and operator precedence.</p>
+                <p class="project-card-cta"><span class="project-card-cta-text">Project write-up</span></p>
+              </article>
+            </a>
+            <a href="syseng-project-3.html" class="project-card-link project-card-link--hub-hidden" aria-labelledby="syseng-card-3-title">
+              <article class="project-card featured">
+                <div class="project-tags">
+                  <span class="tag">Networking</span>
+                  <span class="tag">Ingress</span>
+                </div>
+                <h3 id="syseng-card-3-title">Project 3 (title TBD)</h3>
+                <p>Short summary when ready.</p>
+                <p class="project-card-cta"><span class="project-card-cta-text">Project write-up</span></p>
+              </article>
+            </a>
+          </div>
+        </section>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>© <span id="year"></span> Joshua McLaughlin. Built for GitHub Pages and job applications.</p>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+  <script src="script.js" defer></script>
+</body>
+</html>

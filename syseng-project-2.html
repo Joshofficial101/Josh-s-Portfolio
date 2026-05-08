@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Linux lab: C compilation with Clang token dump and AST inspection for operator precedence. Joshua McLaughlin portfolio.">
+  <title>C compilation and syntax tree lab | Joshua McLaughlin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html">Joshua McLaughlin<span></span></a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html#about">About</a>
+        <a href="index.html#skills">Skills</a>
+        <a href="index.html#projects">Projects</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <article class="section-inner project-detail">
+      <a class="project-back" href="SystemEngineeringProject.html#pd-syseng-projects">← Back to System Engineering hub</a>
+      <header class="project-detail-header">
+        <span class="section-label">Project</span>
+        <div class="project-tags">
+          <span class="tag">Linux</span>
+          <span class="tag">C</span>
+          <span class="tag">Clang</span>
+        </div>
+        <h1>C compilation and syntax tree lab</h1>
+      </header>
+      <div class="project-detail-body">
+        <section class="project-detail-section" aria-labelledby="pd-clang-overview">
+          <h2 id="pd-clang-overview">Overview</h2>
+          <p class="project-detail-intro">
+            In this lab I worked on the command line in Linux (Ubuntu inside QEMU). The goal was to see what the compiler actually does with small C programs before you ever look at machine code. I used Clang to dump tokens, then inspected the abstract syntax tree (AST) so I could tie source lines to structure and to operator precedence.
+          </p>
+        </section>
+
+        <section class="project-detail-section" aria-labelledby="pd-clang-tools">
+          <h2 id="pd-clang-tools">Tools</h2>
+          <p class="project-detail-intro">
+            Ubuntu in a QEMU VM, Bash, Vim (and nano when it made sense), Clang with LLVM frontend flags, and a short C program built for the lab.
+          </p>
+        </section>
+
+        <section class="project-detail-section" aria-labelledby="pd-clang-work">
+          <h2 id="pd-clang-work">What I did</h2>
+          <ol class="project-detail-steps">
+            <li>
+              <strong>Build and baseline</strong>
+              <p>
+                I wrote a small arithmetic example and compiled it with Clang inside the VM. When something failed, I worked through undeclared identifiers and syntax issues from compiler output until the build was clean.
+              </p>
+            </li>
+            <li>
+              <strong>Token dump (lexical view)</strong>
+              <p>
+                I ran Clang with <code class="project-detail-code">-Xclang -dump-tokens</code> on the source line I cared about (for example <code class="project-detail-code">c = a + b</code>). The dump listed identifiers, operators, and punctuation with source locations so I could confirm the lexer view matched what I typed.
+              </p>
+            </li>
+            <li>
+              <strong>AST for the assignment expression</strong>
+              <p>
+                For the same line I inspected the AST around <code class="project-detail-code">main.c</code> at that line. The tree showed assignment (<code class="project-detail-code">=</code>) at the top, with the right side forming an addition node whose children were the operands. That matches reading it as assigning <code class="project-detail-code">c</code> the value of <code class="project-detail-code">a + b</code>.
+              </p>
+            </li>
+            <li>
+              <strong>Operator precedence</strong>
+              <p>
+                I changed the expression to force precedence, for example <code class="project-detail-code">a = b + c * d</code>. In the AST the right-hand side was structured so multiplication grouped under its own node while addition sat higher in the tree. That lines up with multiplication binding tighter than addition, so evaluation behaves like <code class="project-detail-code">b + (c * d)</code>, not left-to-right guessing.
+              </p>
+            </li>
+          </ol>
+        </section>
+
+        <section class="project-detail-section" aria-labelledby="pd-clang-shots">
+          <h2 id="pd-clang-shots">Screenshots</h2>
+          <p class="project-detail-intro">
+            Terminal captures from the lab in the order I am showing them here.
+          </p>
+          <div class="project-detail-step-media">
+            <figure class="project-detail-figure project-detail-figure--step">
+              <img src="assets/lab-clang-01-ast-and-fix.png" alt="Ubuntu terminal in QEMU showing Clang AST output, a compile error for an undeclared identifier, editing in Vim, then a successful compile and program run." loading="lazy">
+              <figcaption>AST output, fixing a compile error, then a clean build.</figcaption>
+            </figure>
+            <figure class="project-detail-figure project-detail-figure--step">
+              <img src="assets/lab-clang-02-dump-tokens.png" alt="Ubuntu terminal listing lab files, compiling with Clang, running the binary, then Clang dump-tokens output scrolling through tokens and header paths." loading="lazy">
+              <figcaption>Compile, run, and Clang token dump.</figcaption>
+            </figure>
+            <figure class="project-detail-figure project-detail-figure--step">
+              <img src="assets/lab-clang-03-ast-overview.png" alt="Ubuntu terminal showing a full color Clang AST tree for a small C program including declarations, binary operators, and printf." loading="lazy">
+              <figcaption>Full AST for the program.</figcaption>
+            </figure>
+            <figure class="project-detail-figure project-detail-figure--step">
+              <img src="assets/lab-clang-04-setup-run.png" alt="Ubuntu terminal showing Clang install notes, mkdir lab3, nano and numbered listing of main.c, compile with Clang, and running main printing the sum." loading="lazy">
+              <figcaption>Lab folder setup, source listing, compile, and first run.</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="project-detail-section" aria-labelledby="pd-clang-takeaway">
+          <h2 id="pd-clang-takeaway">Takeaway</h2>
+          <p class="project-detail-intro">
+            The lab was not about shipping an app. It was about comfort on Linux, reading toolchain output, and using compiler introspection instead of only staring at source when behavior looks wrong. That habit carries over any time you debug builds, scripts, or services on Unix-like systems.
+          </p>
+        </section>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>© <span id="year"></span> Joshua McLaughlin. Built for GitHub Pages and job applications.</p>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+  <script src="script.js" defer></script>
+</body>
+</html>

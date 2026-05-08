@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Amazon Connect cloud contact center: instance setup, phone number, inbound contact flow, security profiles, and live testing. Joshua McLaughlin portfolio project.">
+  <title>Amazon Connect contact center | Joshua McLaughlin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html">Joshua McLaughlin<span></span></a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html#about">About</a>
+        <a href="index.html#skills">Skills</a>
+        <a href="index.html#projects">Projects</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <article class="section-inner project-detail">
+      <a class="project-back" href="SystemEngineeringProject.html#pd-syseng-projects">← Back to System Engineering hub</a>
+      <header class="project-detail-header">
+        <span class="section-label">Project</span>
+        <div class="project-tags">
+          <span class="tag">Amazon Connect</span>
+          <span class="tag">AWS</span>
+          <span class="tag">CCaaS</span>
+        </div>
+        <h1>Amazon Connect contact center</h1>
+      </header>
+      <div class="project-detail-body">
+        <section class="project-detail-section" aria-labelledby="pd-connect-overview">
+          <h2 id="pd-connect-overview">Overview</h2>
+          <p class="project-detail-intro">
+            I followed a five phase lab to start up a working cloud contact center in AWS using Amazon Connect. That meant provisioning an instance, claiming a public phone number, designing an inbound contact flow with prompts and queue routing, tightening security profiles, then proving the whole path with a real phone call into the Contact Control Panel (CCP).
+          </p>
+        </section>
+
+        <section class="project-detail-section" aria-labelledby="pd-connect-phases">
+          <h2 id="pd-connect-phases">What I did</h2>
+          <ol class="project-detail-steps">
+            <li>
+              <strong>Phase 1: Launch the instance</strong>
+              <p>
+                Amazon Connect needs its own instance before anything else runs. In the console I opened Amazon Connect and started the create wizard. I picked a unique access URL alias, chose identity management that stores users inside Connect for this test, and stepped through add administrator, telephony (incoming and outgoing enabled), and data storage. AWS wired up S3 paths, CloudWatch log groups, and optional extras like customer profiles and email using service roles. On the review screen I confirmed storage and logging, then created the instance and waited for it to finish provisioning. The dashboard screenshot is the workspace after that came online.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img src="assets/connect-01-instance-identity.png" alt="Amazon Connect create instance wizard on Set identity with users stored in Connect and a custom access URL alias." loading="lazy">
+                </figure>
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img src="assets/connect-02-instance-telephony.png" alt="Set telephony step with inbound and outbound calling both enabled." loading="lazy">
+                </figure>
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img src="assets/connect-03-instance-data-storage.png" alt="Data storage step showing S3 bucket paths for Connect data and CloudWatch flow logs." loading="lazy">
+                </figure>
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img src="assets/connect-04-instance-review-create.png" alt="Review screen summarizing data storage, encryption, and enabled features before Create instance." loading="lazy">
+                </figure>
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img src="assets/connect-05-dashboard.png" alt="Amazon Connect landing dashboard after instance creation with welcome tiles and announcements." loading="lazy">
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Phase 2: Claim a phone number</strong>
+              <p>
+                With the instance live I went to Routing, then Phone numbers, and claimed a toll free voice number for the United States. For a quick test I pointed inbound traffic at the sample inbound flow so I could dial in without building custom routing first.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img src="assets/connect-06-claim-phone-number.png" alt="Claim phone number screen with Voice channel and a toll free United States number selected." loading="lazy">
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Phase 3: Build the contact flow</strong>
+              <p>
+                This is where caller experience gets defined. In Routing, Contact flows, I used the visual designer to chain blocks from entry through Set voice, Play prompt for the greeting, Store customer input for a menu digit, then Set working queue to BasicQueue when the caller matched the choice, with error paths ending the flow cleanly. I saved and published so production traffic could use it.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img src="assets/connect-07-contact-flow.png" alt="Inbound contact flow diagram with Set voice, Play prompt, Store customer input, Set working queue, and end blocks." loading="lazy">
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Phase 4: Lock down access</strong>
+              <p>
+                Connect separates day to day agent powers using security profiles. I edited permissions so recordings access lined up with least privilege (for example access to redacted call recordings without blanket delete rights). I also trimmed analytics and user administration so roles could only view contact search or view users instead of edit or remove everywhere that fit the scenario.
+              </p>
+              <p>
+                Outside Connect I kept my own AWS IAM posture in mind: manage Connect with scoped policies instead of parking everything on a broad admin user when that is an option.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img src="assets/connect-08-security-recordings.png" alt="Security profile Recordings and Transcripts matrix with limited access checkboxes for redacted recordings." loading="lazy">
+                </figure>
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img src="assets/connect-09-security-analytics.png" alt="Security profile Analytics and Optimization matrix highlighting Contact search view permission." loading="lazy">
+                </figure>
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img src="assets/connect-10-security-users.png" alt="Security profile Users and Permissions matrix with Users row view only selected." loading="lazy">
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Phase 5: Live test</strong>
+              <p>
+                I opened the Contact Control Panel from the Connect UI, set status to Available, dialed the claimed toll free number from my phone, and confirmed the browser showed a connected inbound contact while audio matched the flow I published.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img src="assets/connect-11-ccp-live-call.png" alt="Amazon Connect Contact Control Panel showing an active voice contact and connected call status." loading="lazy">
+                </figure>
+                <figure class="project-detail-figure project-detail-figure--step project-detail-figure--phone-preview">
+                  <img src="assets/connect-12-mobile-test-call.png" alt="Mobile phone voice call screen during an active call to the contact center toll free number." loading="lazy">
+                </figure>
+              </div>
+            </li>
+          </ol>
+        </section>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>© <span id="year"></span> Joshua McLaughlin. Built for GitHub Pages and job applications.</p>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+  <script src="script.js" defer></script>
+</body>
+</html>
