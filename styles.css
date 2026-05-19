@@ -549,6 +549,32 @@ p {
   border: 1px solid var(--border);
 }
 
+.project-detail-pre {
+  margin: 12px 0 0;
+  padding: 16px 18px;
+  max-width: 100%;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  white-space: pre;
+}
+
+.project-detail-steps .project-detail-pre {
+  max-width: min(720px, 100%);
+}
+
+.project-detail-steps li > .project-detail-pre + p {
+  margin-top: 16px;
+}
+
+.project-detail-steps li > p + .project-detail-pre {
+  margin-top: 8px;
+}
+
 .project-detail-section p {
   max-width: 720px;
 }
@@ -649,6 +675,86 @@ p {
 .project-detail-links a::after {
   content: " →";
   opacity: 0.7;
+}
+
+/* Verifying block: separated from step list, centered title */
+.project-detail-section--verify {
+  margin-top: 56px;
+  padding-top: 48px;
+  border-top: 1px solid var(--border);
+}
+
+.project-detail-verify-heading {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.project-detail-verify-body {
+  margin: 0 auto;
+  max-width: none;
+}
+
+.project-detail-verify-prose {
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.project-detail-verify-prose p + p {
+  margin-top: 16px;
+}
+
+.project-detail-section--verify .project-detail-verify-prose p {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.project-detail-section--verify .project-detail-step-media--verify-enlarged {
+  max-width: min(1040px, 100%);
+  margin-top: 28px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.project-detail-section--verify .project-detail-step-media--verify-enlarged .project-detail-figure {
+  margin-bottom: 0;
+}
+
+.project-detail-verify-prose--followup {
+  margin-top: 48px;
+  padding-top: 40px;
+  border-top: 1px solid var(--border-subtle, var(--border));
+}
+
+.project-detail-verify-prose .project-detail-pre {
+  margin-top: 12px;
+  max-width: 100%;
+}
+
+.project-detail-verify-intro {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+
+.project-detail-section--verified {
+  margin-top: 48px;
+  padding-top: 48px;
+  border-top: 1px solid var(--border);
+}
+
+.project-detail-verified-media {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  margin-top: 20px;
+  max-width: min(1100px, 100%);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.project-detail-section--verified .project-detail-figure {
+  margin-bottom: 0;
 }
 
 /* Contact */

@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Fully automated CI/CD pipeline for a containerized 2048 game: build, test, and deploy on every GitHub update. Joshua McLaughlin portfolio project.">
+  <title>CI/CD Pipeline for the 2048 Game | Joshua McLaughlin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html">Joshua McLaughlin<span></span></a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html#about">About</a>
+        <a href="index.html#skills">Skills</a>
+        <a href="index.html#projects">Projects</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <article class="section-inner project-detail">
+      <a class="project-back" href="aws-projects.html">← Back to AWS projects</a>
+      <header class="project-detail-header">
+        <span class="section-label">Project</span>
+        <div class="project-tags">
+          <span class="tag">AWS</span>
+          <span class="tag">CI/CD</span>
+        </div>
+        <h1>CI/CD Pipeline for the 2048 Game</h1>
+      </header>
+      <div class="project-detail-body">
+        <section class="project-detail-section" aria-labelledby="pd-cicd-overview">
+          <h2 id="pd-cicd-overview">Overview</h2>
+          <p class="project-detail-intro">
+            The goal of this CI/CD project is to deploy code using a fully automated pipeline. It creates a fully containerized version of the 2048 game. The pipeline automatically builds, tests, and deploys the application, not just once but every time you update the code using GitHub.
+          </p>
+        </section>
+
+        <section class="project-detail-section" aria-labelledby="pd-cicd-steps">
+          <h2 id="pd-cicd-steps">Steps</h2>
+          <p class="project-detail-intro">
+            Before wiring the pipeline I verified my local AWS tooling from PowerShell on Windows.
+          </p>
+          <ol class="project-detail-steps">
+            <li>
+              <strong>AWS CLI version and logged-in identity</strong>
+              <p>
+                First I ran <code class="project-detail-code">aws --version</code> to confirm the CLI was installed and see which release I had. Then I ran <code class="project-detail-code">aws sts get-caller-identity</code> so I could see which IAM user or role and account the CLI was actually using before running anything else against AWS.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-aws-cli-version-identity.png"
+                    alt="PowerShell terminal showing aws --version output and aws sts get-caller-identity JSON including UserId, Account, and IAM user ARN."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Creating the ECS compute permissions</strong>
+              <p>
+                In my codebase I added an <code class="project-detail-code">Aws</code> folder, a <code class="project-detail-code">Policies</code> subfolder inside it, and a JSON file named <code class="project-detail-code">task-execution-assume-role.json</code> that defines the trust policy for the ECS task execution role (ECS tasks calling <code class="project-detail-code">sts:AssumeRole</code>).
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-task-execution-assume-role-json.png"
+                    alt="Editor view of task-execution-assume-role.json IAM trust policy allowing ecs-tasks.amazonaws.com to assume the role."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                I opened the terminal in Cursor, moved into the <code class="project-detail-code">Aws/Policies</code> directory so <code class="project-detail-code">file://task-execution-assume-role.json</code> resolved locally, and ran:
+              </p>
+              <p>
+                <code class="project-detail-code">aws iam create-role --role-name ecsTaskExecutionRole --assume-role-policy-document file://task-execution-assume-role.json</code>
+              </p>
+              <p>
+                Breaking it down: <code class="project-detail-code">aws iam create-role</code> asks IAM to create a new role. <code class="project-detail-code">--role-name ecsTaskExecutionRole</code> is the name that role will have in your account. <code class="project-detail-code">--assume-role-policy-document file://task-execution-assume-role.json</code> tells the CLI to read the trust policy from that file on disk, which is the JSON shown in the screenshot above (who is allowed to assume this role).
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-create-role-error.png"
+                    alt="PowerShell showing aws iam create-role failing with EntityAlreadyExists because ecsTaskExecutionRole already exists."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                The call failed with <code class="project-detail-code">EntityAlreadyExists</code>: an IAM role named <code class="project-detail-code">ecsTaskExecutionRole</code> already existed in my account. I had created that standard ECS task execution role before through the AWS dashboard while working on another project, so this CLI command collided with the existing role instead of creating a new one.
+              </p>
+            </li>
+            <li>
+              <strong>Granting permissions to the ECS role</strong>
+              <p>
+                Next I attached the AWS-managed ECS task execution policy to that role so ECS can perform the usual runtime tasks (for example pulling container images and sending logs). From the same terminal session I ran:
+              </p>
+              <p>
+                <code class="project-detail-code">aws iam attach-role-policy --role-name ecsTaskExecutionRole --policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy</code>
+              </p>
+              <p>
+                Breaking it down: <code class="project-detail-code">aws iam attach-role-policy</code> tells IAM to attach a permissions policy to an existing role. <code class="project-detail-code">--role-name ecsTaskExecutionRole</code> is the role receiving the policy. <code class="project-detail-code">--policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy</code> identifies the managed policy by ARN (here an AWS-owned policy under the service-role path).
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-attach-ecs-task-execution-policy.png"
+                    alt="PowerShell terminal showing aws iam attach-role-policy for ecsTaskExecutionRole with AmazonECSTaskExecutionRolePolicy; command completes with no output and returns to the prompt."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                The command finished successfully: <code class="project-detail-code">attach-role-policy</code> often prints nothing when it works, so an immediate new prompt with no error text is what you want to see.
+              </p>
+            </li>
+            <li>
+              <strong>Defining the CodeBuild trust policy</strong>
+              <p>
+                In the same <code class="project-detail-code">Aws/Policies</code> folder I added another JSON file, <code class="project-detail-code">codebuild-assume-role.json</code>, with the trust policy that allows the CodeBuild service principal (<code class="project-detail-code">codebuild.amazonaws.com</code>) to call <code class="project-detail-code">sts:AssumeRole</code>. It follows the same shape as the ECS trust file: <code class="project-detail-code">Effect</code> <code class="project-detail-code">Allow</code>, a service in <code class="project-detail-code">Principal</code>, and the assume-role action.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-codebuild-assume-role-json.png"
+                    alt="Editor view of codebuild-assume-role.json: IAM trust policy allowing codebuild.amazonaws.com to call sts:AssumeRole."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Creating the CodeBuild service role</strong>
+              <p>
+                With the trust policy file in place, I stayed in <code class="project-detail-code">Aws/Policies</code> and created a dedicated IAM role for this pipeline's CodeBuild projects:
+              </p>
+              <p>
+                <code class="project-detail-code">aws iam create-role --role-name codebuild-2048-service-role --assume-role-policy-document file://codebuild-assume-role.json</code>
+              </p>
+              <p>
+                Breaking it down: <code class="project-detail-code">aws iam create-role</code> asks IAM to create a new role. <code class="project-detail-code">--role-name codebuild-2048-service-role</code> sets the role name in the account. <code class="project-detail-code">--assume-role-policy-document file://codebuild-assume-role.json</code> loads the trust policy from that local file (the CodeBuild policy from the previous step) so IAM knows which principal may assume the role.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-codebuild-create-role-output.png"
+                    alt="PowerShell showing aws iam create-role success: JSON response with Role ARN, RoleId, CreateDate, and AssumeRolePolicyDocument for codebuild.amazonaws.com."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                The command succeeded. The CLI printed a <code class="project-detail-code">Role</code> object with fields such as <code class="project-detail-code">Arn</code>, <code class="project-detail-code">RoleId</code>, <code class="project-detail-code">CreateDate</code>, and <code class="project-detail-code">AssumeRolePolicyDocument</code>. That last block should mirror <code class="project-detail-code">codebuild-assume-role.json</code>, which confirms IAM stored the trust relationship you intended before you attach build permissions to this role.
+              </p>
+            </li>
+            <li>
+              <strong>Giving CodeBuild its operating permissions</strong>
+              <p>
+                The trust policy lets CodeBuild assume the role; the role still needs permission to actually run the build. In <code class="project-detail-code">Aws/Policies</code> I added a permissions document (saved as <code class="project-detail-code">codebuild-permissions.json</code>) that allows CloudWatch Logs actions for build output and ECR actions so the project can authenticate to the registry and push image layers.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-codebuild-permissions-json.png"
+                    alt="Editor view of codebuild-permissions.json IAM policy allowing logs CreateLogGroup CreateLogStream PutLogEvents and ECR push and auth actions on all resources."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                From that folder I ran:
+              </p>
+              <p>
+                <code class="project-detail-code">aws iam put-role-policy --role-name codebuild-2048-service-role --policy-name CodeBuildAppPolicy --policy-document file://codebuild-permissions.json</code>
+              </p>
+              <p>
+                In short: <code class="project-detail-code">aws iam put-role-policy</code> adds or replaces an inline policy on a role. <code class="project-detail-code">--role-name codebuild-2048-service-role</code> targets the CodeBuild role from the previous step. <code class="project-detail-code">--policy-name CodeBuildAppPolicy</code> is the name IAM uses for this inline policy. <code class="project-detail-code">--policy-document file://codebuild-permissions.json</code> reads the permission statements from that JSON file.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-codebuild-put-role-policy.png"
+                    alt="PowerShell in aws policies folder showing aws iam put-role-policy with CodeBuildAppPolicy; command succeeds with no output and returns to prompt."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                Like several other IAM write operations, a clean run returns no body text and drops straight back to the prompt when it succeeds.
+              </p>
+            </li>
+            <li>
+              <strong>Creating and defining the CodePipeline trust policy</strong>
+              <p>
+                CodePipeline needs its own IAM role as well. In <code class="project-detail-code">Aws/Policies</code> I added <code class="project-detail-code">codepipeline-assume-role.json</code>, a trust policy that allows the CodePipeline service (<code class="project-detail-code">codepipeline.amazonaws.com</code>) to call <code class="project-detail-code">sts:AssumeRole</code>, same overall pattern as the CodeBuild and ECS trust files.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-codepipeline-assume-role-json.png"
+                    alt="Editor view of codepipeline-assume-role.json IAM trust policy allowing codepipeline.amazonaws.com to call sts:AssumeRole."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                After saving that file I created the pipeline role from the same directory:
+              </p>
+              <p>
+                <code class="project-detail-code">aws iam create-role --role-name codepipeline-2048-service-role --assume-role-policy-document file://codepipeline-assume-role.json</code>
+              </p>
+              <p>
+                Breaking it down: <code class="project-detail-code">aws iam create-role</code> creates the IAM role. <code class="project-detail-code">--role-name codepipeline-2048-service-role</code> is the role name in the account. <code class="project-detail-code">--assume-role-policy-document file://codepipeline-assume-role.json</code> applies the trust policy from that JSON file so only the principals you defined can assume this role.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-codepipeline-create-role-output.png"
+                    alt="PowerShell showing aws iam create-role for codepipeline-2048-service-role with JSON Role output including AssumeRolePolicyDocument for codepipeline.amazonaws.com."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                The CLI returned the new role metadata, including <code class="project-detail-code">AssumeRolePolicyDocument</code> reflecting <code class="project-detail-code">codepipeline-assume-role.json</code>, which confirms the CodePipeline service principal is wired into IAM the way you expect before adding pipeline action permissions.
+              </p>
+            </li>
+            <li>
+              <strong>Giving CodePipeline its permissions</strong>
+              <p>
+                Next I defined what the pipeline role is allowed to do at runtime. In <code class="project-detail-code">Aws/Policies</code> I added <code class="project-detail-code">codepipeline-permissions.json</code>: it grants CodeBuild actions to start and inspect builds, ECS actions to register task definitions, describe services, and push updates, plus <code class="project-detail-code">iam:PassRole</code> so the pipeline can hand ECS the roles it needs for task execution.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-codepipeline-permissions-json.png"
+                    alt="Editor view of codepipeline-permissions.json allowing codebuild StartBuild BatchGetBuilds, ecs task definition and service APIs, UpdateService, and iam PassRole."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                I applied it as an inline policy from the same folder:
+              </p>
+              <p>
+                <code class="project-detail-code">aws iam put-role-policy --role-name codepipeline-2048-service-role --policy-name CodePipelineAppPolicy --policy-document file://codepipeline-permissions.json</code>
+              </p>
+              <p>
+                Briefly: <code class="project-detail-code">put-role-policy</code> attaches or updates one inline policy on a role. <code class="project-detail-code">--role-name codepipeline-2048-service-role</code> selects the CodePipeline role from the prior step. <code class="project-detail-code">--policy-name CodePipelineAppPolicy</code> is the name shown in IAM for this inline document. <code class="project-detail-code">--policy-document file://codepipeline-permissions.json</code> loads the allow rules from that JSON file.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-codepipeline-put-role-policy.png"
+                    alt="PowerShell showing aws iam put-role-policy for codepipeline-2048-service-role with CodePipelineAppPolicy; succeeds with blank output and new prompt."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                Success looks the same as with CodeBuild: no printed response, just the next prompt with no error text.
+              </p>
+            </li>
+            <li>
+              <strong>Creating the Amazon ECR repository</strong>
+              <p>
+                Still in <code class="project-detail-code">Aws/Policies</code> where the terminal was already pointed, I created a private registry to hold the game container image:
+              </p>
+              <p>
+                <code class="project-detail-code">aws ecr create-repository --repository-name game-2048 --region us-east-1</code>
+              </p>
+              <p>
+                That calls the ECR <code class="project-detail-code">create-repository</code> API: <code class="project-detail-code">--repository-name game-2048</code> sets the repo name, and <code class="project-detail-code">--region us-east-1</code> pins which Regional endpoint (and ARN prefix) you are using. On success the CLI prints JSON including <code class="project-detail-code">repositoryUri</code>, which is what you reference when you tag and push an image and when ECS pulls by image digest or tag.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-ecr-create-repository-output.png"
+                    alt="PowerShell showing aws ecr create-repository for game-2048 in us-east-1 with JSON output including repositoryUri and repositoryArn."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                I copied the <code class="project-detail-code">repositoryUri</code> from that output into the next file so the task knows which image to run (typically with a tag such as <code class="project-detail-code">:latest</code> once the pipeline pushes).
+              </p>
+            </li>
+            <li>
+              <strong>Telling ECS how to run the game</strong>
+              <p>
+                For the task definition I stepped out of <code class="project-detail-code">Policies</code> into the parent <code class="project-detail-code">Aws</code> folder and added <code class="project-detail-code">task-definition.json</code>. It describes a Fargate task (<code class="project-detail-code">requiresCompatibilities</code> FARGATE, <code class="project-detail-code">networkMode</code> <code class="project-detail-code">awsvpc</code>), CPU and memory, the ECS task execution role ARN, one container pointing at the ECR image URI with <code class="project-detail-code">:latest</code>, port <code class="project-detail-code">80</code>, and <code class="project-detail-code">awslogs</code> configuration so build and runtime logs land in CloudWatch.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-task-definition-json.png"
+                    alt="Editor view of task-definition.json for game-2048 Fargate task: ECR image URI, port 80, ecsTaskExecutionRole, awslogs to /ecs/game-2048 in us-east-1."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Registering the task definition via the CLI</strong>
+              <p>
+                With <code class="project-detail-code">task-definition.json</code> saved next to <code class="project-detail-code">Policies</code>, I ran <code class="project-detail-code">cd ..</code> so the shell was in the main <code class="project-detail-code">Aws</code> folder where that file lives (not inside <code class="project-detail-code">Policies</code>). Then I registered it with ECS:
+              </p>
+              <p>
+                <code class="project-detail-code">aws ecs register-task-definition --cli-input-json file://task-definition.json</code>
+              </p>
+              <p>
+                <code class="project-detail-code">register-task-definition</code> tells ECS to store a new revision of the task family described in your JSON. The <code class="project-detail-code">--cli-input-json file://task-definition.json</code> flag loads the whole document from disk instead of passing dozens of separate CLI arguments, so what you validated in the editor is exactly what ECS registers.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-ecs-register-task-definition-output.png"
+                    alt="PowerShell after cd .. showing aws ecs register-task-definition with JSON response including taskDefinitionArn, family game-2048-task, revision 1, and container image from ECR."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                The response echoes the registered task definition, including <code class="project-detail-code">taskDefinitionArn</code> and the revision number (<code class="project-detail-code">:1</code> on the first register), which you later reference when creating or updating a service.
+              </p>
+            </li>
+            <li>
+              <strong>Setting up compute and build infrastructure by creating an ECS cluster</strong>
+              <p>
+                Still in the main <code class="project-detail-code">Aws</code> directory, I provisioned a cluster that will host the Fargate tasks for the game once an image exists in ECR and a service points at this cluster:
+              </p>
+              <p>
+                <code class="project-detail-code">aws ecs create-cluster --cluster-name game-2048-cluster --region us-east-1</code>
+              </p>
+              <p>
+                <code class="project-detail-code">create-cluster</code> allocates the ECS-level grouping resource (your tasks and services run inside it). <code class="project-detail-code">--cluster-name game-2048-cluster</code> sets the human-readable name you use in later CLI calls and the console. <code class="project-detail-code">--region us-east-1</code> keeps the cluster in the same Region as the task definition and ECR repo so ARNs and networking stay consistent.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-ecs-create-cluster-output.png"
+                    alt="PowerShell showing aws ecs create-cluster for game-2048-cluster in us-east-1 with JSON clusterArn, ACTIVE status, and zero tasks or services yet."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                A fresh cluster shows zero running tasks and zero services until you define a service or run a task; <code class="project-detail-code">ACTIVE</code> only means the cluster resource itself is ready.
+              </p>
+            </li>
+            <li>
+              <strong>Creating a CloudWatch log group</strong>
+              <p>
+                In <code class="project-detail-code">task-definition.json</code> the container uses the <code class="project-detail-code">awslogs</code> driver with <code class="project-detail-code">awslogs-group</code> set to <code class="project-detail-code">/ecs/game-2048</code>. Unlike some console flows that create log groups for you, working from the CLI meant creating that log group myself first. If it is missing, the task often fails to start when ECS tries to open a log stream under a group that does not exist yet.
+              </p>
+              <p>
+                <code class="project-detail-code">aws logs create-log-group --log-group-name /ecs/game-2048 --region us-east-1</code>
+              </p>
+              <p>
+                This calls the CloudWatch Logs <code class="project-detail-code">create-log-group</code> API: <code class="project-detail-code">--log-group-name</code> must match the group name in the task definition, and <code class="project-detail-code">--region us-east-1</code> creates it in the same Region where the task runs.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-cloudwatch-create-log-group.png"
+                    alt="PowerShell showing aws logs create-log-group for /ecs/game-2048 in us-east-1 with no output and a new prompt indicating success."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                As with several other write APIs, success usually means no body text and an immediate new prompt.
+              </p>
+            </li>
+            <li>
+              <strong>Telling AWS CodeBuild how to build the container image</strong>
+              <p>
+                In the main <code class="project-detail-code">Aws</code> folder I added <code class="project-detail-code">codebuild-project.json</code>. It names the project <code class="project-detail-code">game-2048-build</code>, wires in the <code class="project-detail-code">codebuild-2048-service-role</code> service role, and sets <code class="project-detail-code">source</code> and <code class="project-detail-code">artifacts</code> to <code class="project-detail-code">CODEPIPELINE</code> so CodePipeline owns checkout and output passing. The environment uses the Amazon Linux 2 CodeBuild standard image on a small instance, <code class="project-detail-code">privilegedMode</code> enabled so Docker can build images, plus plaintext variables such as <code class="project-detail-code">AWS_ACCOUNT_ID</code> and <code class="project-detail-code">IMAGE_REPO_NAME</code> for the buildspec or inline commands to tag and push to ECR.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-codebuild-project-json.png"
+                    alt="Editor view of codebuild-project.json for game-2048-build: CODEPIPELINE source and artifacts, Linux container environment, privileged mode, ECR-related environment variables."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                I registered that specification with CodeBuild:
+              </p>
+              <p>
+                <code class="project-detail-code">aws codebuild create-project --cli-input-json file://codebuild-project.json --region us-east-1</code>
+              </p>
+              <p>
+                <code class="project-detail-code">create-project</code> creates the CodeBuild project resource from your JSON. <code class="project-detail-code">--cli-input-json file://codebuild-project.json</code> sends the full document as the API payload, and <code class="project-detail-code">--region us-east-1</code> pins the project to the same Region as the rest of this setup.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-codebuild-create-project-output.png"
+                    alt="PowerShell showing aws codebuild create-project returning JSON for game-2048-build including project ARN, CODEPIPELINE source and artifacts, and Linux container environment."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                The CLI echoes the project metadata (name, ARN, environment, and so on); paginated output may pause with a pager until you exit.
+              </p>
+            </li>
+            <li>
+              <strong>Creating the GitHub connection path</strong>
+              <p>
+                To pull source from GitHub inside CodePipeline you need a CodeStar Connection to GitHub. I started one from the CLI:
+              </p>
+              <p>
+                <code class="project-detail-code">aws codestar-connections create-connection --provider-type GitHub --connection-name github-2048-conn --region us-east-1</code>
+              </p>
+              <p>
+                <code class="project-detail-code">create-connection</code> registers a new connection resource. <code class="project-detail-code">--provider-type GitHub</code> selects GitHub as the host. <code class="project-detail-code">--connection-name github-2048-conn</code> is the friendly label shown in the console. <code class="project-detail-code">--region us-east-1</code> stores the connection metadata in that Region. The JSON response includes a <code class="project-detail-code">ConnectionArn</code> you copy into the pipeline definition shortly afterward.
+              </p>
+              <p>
+                The CLI stops short of finishing GitHub authorization (there is no interactive OAuth flow from the terminal in this setup), so I opened the AWS console, finished the pending connection, and approved access through the GitHub side until the connection showed as Available.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-codestar-github-connection-console.png"
+                    alt="AWS CodeStar Connections console showing github-2048-conn for GitHub provider with Available status."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Adding the pipeline.json file</strong>
+              <p>
+                Next I described the pipeline itself as JSON beside the other IaC-style files in the main <code class="project-detail-code">Aws</code> folder. <code class="project-detail-code">pipeline.json</code> names the pipeline <code class="project-detail-code">game-2048-pipeline</code>, attaches the <code class="project-detail-code">codepipeline-2048-service-role</code> IAM role, and sets an S3 <code class="project-detail-code">artifactStore</code> for passing build inputs and outputs between stages.
+              </p>
+              <p>
+                The <code class="project-detail-code">stages</code> array wires three phases together: a <code class="project-detail-code">Source</code> action using <code class="project-detail-code">CodeStarSourceConnection</code> against my GitHub repo <code class="project-detail-code">joshofficial101/aws-project-2048-launch</code> on <code class="project-detail-code">main</code>, using the <code class="project-detail-code">ConnectionArn</code> from the CodeStar connection step; a <code class="project-detail-code">Build</code> action that runs the <code class="project-detail-code">game-2048-build</code> CodeBuild project on the source artifact and emits a build artifact; and a <code class="project-detail-code">Deploy</code> stage that continues in the same file with an ECS deployment action so the new image reaches the cluster.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-pipeline-json.png"
+                    alt="Editor view of pipeline.json for game-2048-pipeline: CodePipeline role, S3 artifact store, Source stage with CodeStar GitHub connection, Build stage with CodeBuild game-2048-build, beginning of ECS Deploy stage."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Running the CLI command to create the pipeline</strong>
+              <p>
+                With <code class="project-detail-code">pipeline.json</code> saved under <code class="project-detail-code">Aws</code>, I tried to register the pipeline:
+              </p>
+              <p>
+                <code class="project-detail-code">aws codepipeline create-pipeline --cli-input-json file://pipeline.json --region us-east-1</code>
+              </p>
+              <p>
+                That calls the CodePipeline <code class="project-detail-code">CreatePipeline</code> API: <code class="project-detail-code">--cli-input-json file://pipeline.json</code> uploads the full structure you authored, and <code class="project-detail-code">--region us-east-1</code> creates it in the same Region as the CodeBuild project and connection.
+              </p>
+              <p>
+                AWS rejected it with <code class="project-detail-code">InvalidStructureException</code> while validating the artifact bucket named in <code class="project-detail-code">artifactStore</code> (<code class="project-detail-code">codepipeline-us-east-1-…</code> style name). That bucket did not exist yet in my account. CodePipeline relies on that S3 bucket as shared storage between stages (for example packaging what comes out of the GitHub source action and passing build outputs along to deploy), so pointing at a missing bucket fails validation before the pipeline is created.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-codepipeline-create-invalid-bucket.png"
+                    alt="PowerShell showing aws codepipeline create-pipeline failing with InvalidStructureException: artifact bucket codepipeline-us-east-1 account bucket not found in us-east-1."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Fixing the missing S3 bucket</strong>
+              <p>
+                The bucket name in <code class="project-detail-code">pipeline.json</code> has to exist before CodePipeline can use it. I created it explicitly so it matched that <code class="project-detail-code">artifactStore.location</code> value:
+              </p>
+              <p>
+                <code class="project-detail-code">aws s3api create-bucket --bucket codepipeline-us-east-1-135976031804 --region us-east-1</code>
+              </p>
+              <p>
+                <code class="project-detail-code">s3api create-bucket</code> provisions an empty bucket with the given global name. Using the same Region flag keeps it aligned with the pipeline and avoids mismatched Regional endpoints. Once it exists, CodePipeline can drop stage artifacts there (what the source action exports, what CodeBuild consumes and produces, and what downstream deploy actions read), rather than failing validation up front.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-s3-create-codepipeline-bucket.png"
+                    alt="PowerShell showing aws s3api create-bucket returning Location and BucketArn for codepipeline-us-east-1 bucket in us-east-1."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+              <p>
+                I then reran the pipeline creation command from the same <code class="project-detail-code">Aws</code> directory:
+              </p>
+              <p>
+                <code class="project-detail-code">aws codepipeline create-pipeline --cli-input-json file://pipeline.json --region us-east-1</code>
+              </p>
+              <p>
+                This time it succeeded: the CLI printed the pipeline JSON (name, role, artifact store pointing at the new bucket, stages starting with Source), and paginated output could pause on <code class="project-detail-code">-- More --</code> until dismissed.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-codepipeline-create-success.png"
+                    alt="PowerShell showing aws codepipeline create-pipeline succeeding with JSON for game-2048-pipeline and artifactStore location matching the new S3 bucket."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Creating the buildspec.yml file</strong>
+              <p>
+                "The buildspec.yml file is the automated recipe book for AWS CodeBuild. It provides the line-by-line operating instructions"
+              </p>
+              <p>
+                I added <code class="project-detail-code">buildspec.yml</code> at the root of the GitHub repo that CodePipeline checks out. Version <code class="project-detail-code">0.2</code> runs <code class="project-detail-code">pre_build</code> commands to log in to ECR using <code class="project-detail-code">$AWS_ACCOUNT_ID</code>, builds and tags the image with <code class="project-detail-code">$IMAGE_REPO_NAME</code>, pushes to the registry, then writes <code class="project-detail-code">imagedefinitions.json</code> for the ECS deploy action and lists that file under <code class="project-detail-code">artifacts</code>. The steps that follow launch the ECS service the pipeline deploys to, then document the Dockerfile in that same directory that <code class="project-detail-code">docker build</code> uses.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-buildspec-yml.png"
+                    alt="Editor view of buildspec.yml: ECR login, docker build tag push, imagedefinitions.json for game-2048-container, artifacts section."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Launching the ECS Service</strong>
+              <p>
+                Running the following commands acted as a network locator so I could gather subnet and security group identifiers for the larger <code class="project-detail-code">aws ecs create-service</code> command.
+              </p>
+              <pre class="project-detail-pre"><code># 1. Grab your subnet IDs
+aws ec2 describe-subnets --query "Subnets[*].SubnetId" --output text
+
+# 2. Grab your default security group ID
+aws ec2 describe-security-groups --group-names "default" --query "SecurityGroups[*].GroupId" --output text</code></pre>
+              <p>
+                Then I plugged those values into this PowerShell template (replacing the placeholders with real subnet IDs and the security group ID):
+              </p>
+              <pre class="project-detail-pre"><code>aws ecs create-service `
+  --cluster game-2048-cluster `
+  --service-name game-2048-service `
+  --task-definition game-2048-task `
+  --desired-count 1 `
+  --launch-type FARGATE `
+  --network-configuration "awsvpcConfiguration={subnets=[PASTE-SUBNET-1,PASTE-SUBNET-2],securityGroups=[PASTE-SG-ID],assignPublicIp=ENABLED}" `
+  --region us-east-1</code></pre>
+            </li>
+            <li>
+              <strong>Building the Dockerfile</strong>
+              <p>
+                I created a <code class="project-detail-code">Dockerfile</code> within the main codebase and added the following production-ready Nginx configuration (<code class="project-detail-code">nginx:alpine</code>, copy static assets into <code class="project-detail-code">/usr/share/nginx/html/</code>, expose <code class="project-detail-code">80</code>).
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-dockerfile.png"
+                    alt="Editor view of Dockerfile using nginx alpine, COPY project files to usr share nginx html, EXPOSE 80."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Pushing everything to GitHub</strong>
+              <p>
+                Last, I moved to the repository root (from <code class="project-detail-code">Aws</code> I used <code class="project-detail-code">cd ..</code>), staged the infrastructure files, <code class="project-detail-code">buildspec.yml</code>, and the <code class="project-detail-code">Dockerfile</code>, committed them, and pushed <code class="project-detail-code">main</code> so the CodePipeline source stage would pick up the same revision GitHub now holds.
+              </p>
+              <p>
+                <code class="project-detail-code">git add .</code>
+              </p>
+              <p>
+                <code class="project-detail-code">git commit -m "feat: add AWS infrastructure blueprints and buildspec configuration"</code>
+              </p>
+              <p>
+                <code class="project-detail-code">git push origin main</code>
+              </p>
+              <p>
+                <code class="project-detail-code">git add .</code> stages every tracked change in the tree, <code class="project-detail-code">git commit</code> saves that snapshot with a message, and <code class="project-detail-code">git push origin main</code> publishes <code class="project-detail-code">main</code> to GitHub so the GitHub source action on the pipeline has material to pull on the next run.
+              </p>
+              <div class="project-detail-step-media">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/cicd-2048-git-push-github.png"
+                    alt="PowerShell showing git add, commit summarizing Aws policies JSON files pipeline task-definition codebuild-project buildspec Dockerfile, and git push origin main to aws-project-2048-launch."
+                    loading="lazy"
+                  >
+                </figure>
+              </div>
+            </li>
+          </ol>
+        </section>
+
+        <section class="project-detail-section project-detail-section--verify" aria-labelledby="pd-cicd-verify">
+          <h2 id="pd-cicd-verify" class="project-detail-verify-heading">Verifying the project</h2>
+          <div class="project-detail-verify-body">
+            <div class="project-detail-verify-prose">
+            <p>
+              While verifying the project I first checked the status of AWS CodePipeline. In the failed action details I saw this error:
+            </p>
+            <div class="project-detail-step-media">
+              <figure class="project-detail-figure project-detail-figure--step">
+                <img
+                  src="assets/cicd-2048-verify-pipeline-connection-permission-error.png"
+                  alt="CodePipeline action execution failed: Insufficient permissions to use CodeStar connection ARN; role lacks permission."
+                  loading="lazy"
+                >
+              </figure>
+            </div>
+            <p>
+              That means the CodePipeline service role was trying to use the GitHub CodeStar connection for the source stage, but IAM had not explicitly allowed it to call that API on the connection.
+            </p>
+            <p>
+              I reopened <code class="project-detail-code">Aws/Policies/codepipeline-permissions.json</code> and added the missing action <code class="project-detail-code">codestar-connections:UseConnection</code> alongside the existing CodeBuild, ECS, and <code class="project-detail-code">iam:PassRole</code> statements.
+            </p>
+            <div class="project-detail-step-media">
+              <figure class="project-detail-figure project-detail-figure--step">
+                <img
+                  src="assets/cicd-2048-codepipeline-permissions-use-connection.png"
+                  alt="Editor view of codepipeline-permissions.json including codestar-connections UseConnection in the Action array."
+                  loading="lazy"
+                >
+              </figure>
+            </div>
+            <p>
+              To push that updated inline policy to IAM I moved into the policies folder and reapplied it:
+            </p>
+            <p>
+              <code class="project-detail-code">cd Aws/Policies</code>
+            </p>
+            <p>
+              <code class="project-detail-code">aws iam put-role-policy --role-name codepipeline-2048-service-role --policy-name CodePipelineAppPolicy --policy-document file://codepipeline-permissions.json</code>
+            </p>
+            </div>
+            <div class="project-detail-step-media project-detail-step-media--verify-enlarged">
+              <figure class="project-detail-figure project-detail-figure--step">
+                <img
+                  src="assets/cicd-2048-codepipeline-put-role-policy-use-connection.png"
+                  alt="PowerShell in Aws Policies folder showing aws iam put-role-policy for CodePipelineAppPolicy with no errors."
+                  loading="lazy"
+                >
+              </figure>
+            </div>
+            <div class="project-detail-verify-prose project-detail-verify-prose--followup">
+            <p>
+              After that connection permission was fixed, the pipeline surfaced a different failure: the CodePipeline service role still could not write source output into the S3 bucket used as the artifact store (or read objects back when later stages need them).
+            </p>
+            <div class="project-detail-step-media">
+              <figure class="project-detail-figure project-detail-figure--step">
+                <img
+                  src="assets/cicd-2048-verify-pipeline-s3-putobject-denied.png"
+                  alt="CodePipeline execution summary: GitHub upload to S3 failed with AccessDenied on s3 PutObject for codepipeline artifact bucket path."
+                  loading="lazy"
+                >
+              </figure>
+            </div>
+            <p>
+              In practice that meant the role assumed during the source action lacked <code class="project-detail-code">s3:PutObject</code> (and related read APIs) on the artifact bucket prefix CodePipeline uses under the hood.
+            </p>
+            <p>
+              I edited <code class="project-detail-code">Aws/Policies/codepipeline-permissions.json</code> again and appended:
+            </p>
+            <p>
+              <code class="project-detail-code">"s3:PutObject"</code>, <code class="project-detail-code">"s3:GetObject"</code>, and <code class="project-detail-code">"s3:GetObjectVersion"</code>
+            </p>
+            <p>
+              still scoped with <code class="project-detail-code">"Resource": "*"</code> in this document (you can tighten that to the artifact bucket ARN later if you prefer least privilege).
+            </p>
+            <div class="project-detail-step-media">
+              <figure class="project-detail-figure project-detail-figure--step">
+                <img
+                  src="assets/cicd-2048-codepipeline-permissions-s3-artifacts.png"
+                  alt="Editor view of codepipeline-permissions.json with S3 PutObject GetObject GetObjectVersion alongside CodeStar and other actions."
+                  loading="lazy"
+                >
+              </figure>
+            </div>
+            <p>
+              From <code class="project-detail-code">Aws/Policies</code> I pushed the same inline policy name back to IAM:
+            </p>
+            <p>
+              <code class="project-detail-code">aws iam put-role-policy --role-name codepipeline-2048-service-role --policy-name CodePipelineAppPolicy --policy-document file://codepipeline-permissions.json</code>
+            </p>
+            </div>
+            <div class="project-detail-verify-prose project-detail-verify-prose--followup">
+            <p>
+              Once CodePipeline could fetch GitHub through the connection and write artifacts to S3, the build stage failed next: CodeBuild downloads the source bundle from that same artifact bucket during <code class="project-detail-code">DOWNLOAD_SOURCE</code>, and the CodeBuild service role did not yet have read access.
+            </p>
+            <div class="project-detail-step-media">
+              <figure class="project-detail-figure project-detail-figure--step">
+                <img
+                  src="assets/cicd-2048-verify-codebuild-s3-getobject-denied.png"
+                  alt="CodePipeline execution summary: CodeBuild DOWNLOAD_SOURCE failed with AccessDenied on s3 GetObject for pipeline artifact key in codepipeline bucket."
+                  loading="lazy"
+                >
+              </figure>
+            </div>
+            <p>
+              The console pointed at <code class="project-detail-code">codebuild-2048-service-role</code> lacking <code class="project-detail-code">s3:GetObject</code> on the staged object prefix under the CodePipeline artifact bucket.
+            </p>
+            <p>
+              I opened <code class="project-detail-code">Aws/Policies/codebuild-permissions.json</code> and added <code class="project-detail-code">"s3:GetObject"</code> and <code class="project-detail-code">"s3:GetObjectVersion"</code> next to the existing logs and ECR actions (still using <code class="project-detail-code">"Resource": "*"</code> here for simplicity).
+            </p>
+            <div class="project-detail-step-media">
+              <figure class="project-detail-figure project-detail-figure--step">
+                <img
+                  src="assets/cicd-2048-codebuild-permissions-s3-read.png"
+                  alt="Editor view of codebuild-permissions.json including s3 GetObject and GetObjectVersion after ECR actions."
+                  loading="lazy"
+                >
+              </figure>
+            </div>
+            <p>
+              I reapplied the CodeBuild inline policy from <code class="project-detail-code">Aws/Policies</code>:
+            </p>
+            <p>
+              <code class="project-detail-code">aws iam put-role-policy --role-name codebuild-2048-service-role --policy-name CodeBuildAppPolicy --policy-document file://codebuild-permissions.json</code>
+            </p>
+            </div>
+            <div class="project-detail-verify-prose project-detail-verify-prose--followup">
+            <p>
+              With S3 reads working for CodeBuild, the next failure showed up in the build phase: <code class="project-detail-code">docker build</code> exited non-zero. CodeBuild shares outbound pulls with other customers, so after some reading I tied it to Docker Hub rate limits on anonymous pulls when the Dockerfile used <code class="project-detail-code">FROM nginx:alpine</code> (Docker Hub returned HTTP 429 "too many requests" in the logs).
+            </p>
+            <div class="project-detail-step-media">
+              <figure class="project-detail-figure project-detail-figure--step">
+                <img
+                  src="assets/cicd-2048-verify-build-docker-rate-limit-pipeline.png"
+                  alt="CodePipeline console: Build stage failed with COMMAND_EXECUTION_ERROR on docker build command."
+                  loading="lazy"
+                >
+              </figure>
+            </div>
+            <div class="project-detail-step-media">
+              <figure class="project-detail-figure project-detail-figure--step">
+                <img
+                  src="assets/cicd-2048-codebuild-log-docker-hub-429.png"
+                  alt="CodeBuild log: docker pull nginx alpine fails with 429 Too Many Requests from Docker Hub unauthenticated rate limit."
+                  loading="lazy"
+                >
+              </figure>
+            </div>
+            <p>
+              To avoid pulling that base image through Docker Hub during CI, I pointed <code class="project-detail-code">FROM</code> at the Amazon public mirror on ECR Public instead (<code class="project-detail-code">public.ecr.aws/nginx/nginx:alpine</code>) and kept the same copy and expose steps.
+            </p>
+            <div class="project-detail-step-media">
+              <figure class="project-detail-figure project-detail-figure--step">
+                <img
+                  src="assets/cicd-2048-dockerfile-ecr-public-nginx.png"
+                  alt="Dockerfile using FROM public.ecr.aws/nginx/nginx alpine with comment about bypassing Docker Hub rate limits."
+                  loading="lazy"
+                >
+              </figure>
+            </div>
+            <p>
+              After committing that Dockerfile change I pushed <code class="project-detail-code">main</code> again so the pipeline could retry against fresh GitHub revision:
+            </p>
+            <p>
+              <code class="project-detail-code">git add Dockerfile</code>
+            </p>
+            <p>
+              <code class="project-detail-code">git commit -m "fixed docker file with rate limit"</code>
+            </p>
+            <p>
+              <code class="project-detail-code">git push origin main</code>
+            </p>
+            <div class="project-detail-step-media">
+              <figure class="project-detail-figure project-detail-figure--step">
+                <img
+                  src="assets/cicd-2048-git-push-dockerfile-ecr-public.png"
+                  alt="PowerShell showing git add Dockerfile, commit fixed docker file with rate limit, push origin main, git status clean."
+                  loading="lazy"
+                >
+              </figure>
+            </div>
+            </div>
+            <div class="project-detail-verify-prose project-detail-verify-prose--followup">
+            <p>
+              After the image built successfully, the build action failed again at the very end during <code class="project-detail-code">UPLOAD_ARTIFACTS</code>: CodeBuild must write outputs (such as <code class="project-detail-code">imagedefinitions.json</code>) back into the pipeline's S3 artifact bucket. The role already had S3 read access for downloads, but not put permission for those uploads.
+            </p>
+            <div class="project-detail-step-media">
+              <figure class="project-detail-figure project-detail-figure--step">
+                <img
+                  src="assets/cicd-2048-verify-codebuild-s3-putobject-denied.png"
+                  alt="CodePipeline execution summary: UPLOAD_ARTIFACTS failed AccessDenied for codebuild role on s3 PutObject to CodePipeline artifact bucket path."
+                  loading="lazy"
+                >
+              </figure>
+            </div>
+            <p>
+              I edited <code class="project-detail-code">Aws/Policies/codebuild-permissions.json</code> again and added <code class="project-detail-code">"s3:PutObject"</code> alongside the existing S3 get actions, logs, and ECR permissions.
+            </p>
+            <div class="project-detail-step-media">
+              <figure class="project-detail-figure project-detail-figure--step">
+                <img
+                  src="assets/cicd-2048-codebuild-permissions-s3-putobject.png"
+                  alt="Editor view of codebuild-permissions.json including s3 PutObject with GetObject and GetObjectVersion."
+                  loading="lazy"
+                >
+              </figure>
+            </div>
+            <p>
+              From <code class="project-detail-code">Aws/Policies</code> I reapplied the inline policy:
+            </p>
+            <p>
+              <code class="project-detail-code">aws iam put-role-policy --role-name codebuild-2048-service-role --policy-name CodeBuildAppPolicy --policy-document file://codebuild-permissions.json</code>
+            </p>
+            <div class="project-detail-step-media">
+              <figure class="project-detail-figure project-detail-figure--step">
+                <img
+                  src="assets/cicd-2048-codebuild-put-role-policy-s3-putobject.png"
+                  alt="PowerShell in aws policies folder showing aws iam put-role-policy for CodeBuildAppPolicy succeeding with new prompt."
+                  loading="lazy"
+                >
+              </figure>
+            </div>
+            </div>
+            <div class="project-detail-verify-prose project-detail-verify-prose--followup">
+              <p>
+                Another note while verifying end-to-end behavior: the security group attached to the ECS service tasks still needed an explicit inbound rule so browsers could reach Nginx on port <code class="project-detail-code">80</code>. I opened TCP <code class="project-detail-code">80</code> from <code class="project-detail-code">0.0.0.0/0</code> on the group below (tighten that CIDR later if you only want a VPC or load balancer source).
+              </p>
+              <pre class="project-detail-pre"><code>aws ec2 authorize-security-group-ingress `
+  --group-id sg-0f8aab09ec0985d66 `
+  --protocol tcp `
+  --port 80 `
+  --cidr 0.0.0.0/0 `
+  --region us-east-1</code></pre>
+            </div>
+          </div>
+        </section>
+
+        <section class="project-detail-section project-detail-section--verified" aria-labelledby="pd-cicd-project-verified">
+          <h2 id="pd-cicd-project-verified" class="project-detail-verify-heading">Project Verified</h2>
+          <div class="project-detail-verified-media">
+            <figure class="project-detail-figure project-detail-figure--step">
+              <img
+                src="assets/cicd-2048-pipeline-project-verified.png"
+                alt="AWS CodePipeline game-2048-pipeline: Source from GitHub, CodeBuild, and ECS deploy stages all succeeded with green status."
+                loading="lazy"
+              >
+            </figure>
+            <figure class="project-detail-figure project-detail-figure--step">
+              <img
+                src="assets/cicd-2048-project-verified-game-live.png"
+                alt="Browser window showing the 2048 game running over HTTP at the tasks public IP address with score and game board visible."
+                loading="lazy"
+              >
+            </figure>
+            <figure class="project-detail-figure project-detail-figure--step">
+              <img
+                src="assets/cicd-2048-project-verified-game-playing.png"
+                alt="Browser showing 2048 game in progress over HTTP at public IP with populated tiles and scoreboard."
+                loading="lazy"
+              >
+            </figure>
+          </div>
+        </section>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>© <span id="year"></span> Joshua McLaughlin. Built for GitHub Pages and job applications.</p>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+  <script src="script.js" defer></script>
+</body>
+</html>

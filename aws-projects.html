@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AWS projects: LAMP stack on EC2 and CI/CD for the 2048 game. Joshua McLaughlin portfolio hub.">
+  <title>AWS Projects | Joshua McLaughlin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html">Joshua McLaughlin<span></span></a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html#about">About</a>
+        <a href="index.html#skills">Skills</a>
+        <a href="index.html#projects">Projects</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <article class="section-inner project-detail">
+      <a class="project-back" href="index.html#projects">← Back to projects</a>
+      <header class="project-detail-header">
+        <span class="section-label">Projects</span>
+        <div class="project-tags">
+          <span class="tag">AWS</span>
+        </div>
+        <h1>AWS Projects</h1>
+      </header>
+      <div class="project-detail-body">
+        <section class="project-detail-section">
+          <p class="project-detail-intro">
+            Below are individual write-ups for AWS work hosted here on this portfolio site.
+          </p>
+          <div class="projects-grid projects-grid--detail">
+            <a href="project-serverless-aws.html" class="project-card-link" aria-labelledby="aws-hub-card-lamp-title">
+              <article class="project-card featured">
+                <div class="project-tags">
+                  <span class="tag">AWS</span>
+                  <span class="tag">SQL</span>
+                  <span class="tag">Linux</span>
+                  <span class="tag">PHP</span>
+                  <span class="tag">Git</span>
+                </div>
+                <h3 id="aws-hub-card-lamp-title">AWS Cloud Hosted Database Management System</h3>
+                <p>
+                  A LAMP Application hosted on AWS using EC2, and Using MySQL as the database.
+                </p>
+                <p class="project-card-cta"><span class="project-card-cta-text">Project write-up</span></p>
+              </article>
+            </a>
+            <a href="project-aws-cicd-2048.html" class="project-card-link" aria-labelledby="aws-hub-card-cicd-title">
+              <article class="project-card featured">
+                <div class="project-tags">
+                  <span class="tag">AWS</span>
+                  <span class="tag">CI/CD</span>
+                  <span class="tag">Git</span>
+                </div>
+                <h3 id="aws-hub-card-cicd-title">CI/CD Pipeline for the 2048 Game</h3>
+                <p>
+                  Automated pipeline for building and deploying the 2048 game on AWS. Full write-up in progress.
+                </p>
+                <p class="project-card-cta"><span class="project-card-cta-text">Project write-up</span></p>
+              </article>
+            </a>
+          </div>
+        </section>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>© <span id="year"></span> Joshua McLaughlin. Built for GitHub Pages and job applications.</p>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+  <script src="script.js" defer></script>
+</body>
+</html>
