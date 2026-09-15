@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 330" role="img" aria-labelledby="title description">
+  <title id="title">Reservation email workflow</title>
+  <desc id="description">A reservation form sends a request through Amazon API Gateway to AWS Lambda, which uses Amazon SES to email the company owner.</desc>
+  <defs>
+    <filter id="glow" x="-25%" y="-40%" width="150%" height="180%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#38bdf8"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="330" rx="20" fill="#121820"/>
+  <text x="600" y="55" text-anchor="middle" fill="#e8eef6" font-family="Arial, sans-serif" font-size="25" font-weight="700">Reservation request workflow</text>
+  <text x="600" y="84" text-anchor="middle" fill="#8b9cb0" font-family="Arial, sans-serif" font-size="16">A submitted request is processed and delivered to the company owner.</text>
+
+  <g fill="none" stroke="#38bdf8" stroke-width="3" marker-end="url(#arrow)" filter="url(#glow)">
+    <path d="M270 190H338"/>
+    <path d="M555 190H623"/>
+    <path d="M840 190H908"/>
+  </g>
+
+  <g font-family="Arial, sans-serif">
+    <g transform="translate(50 125)">
+      <rect width="220" height="130" rx="14" fill="#161d28" stroke="#38bdf8" stroke-opacity=".55"/>
+      <rect x="18" y="20" width="38" height="38" rx="8" fill="#38bdf8" fill-opacity=".16"/>
+      <path d="M29 29H45M29 38H45M29 47H40" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+      <text x="72" y="43" fill="#e8eef6" font-size="19" font-weight="700">Reservation Form</text>
+      <text x="18" y="94" fill="#8b9cb0" font-size="15">Customer submits</text>
+      <text x="18" y="116" fill="#8b9cb0" font-size="15">reservation details</text>
+    </g>
+    <g transform="translate(335 125)">
+      <rect width="220" height="130" rx="14" fill="#161d28" stroke="#38bdf8" stroke-opacity=".55"/>
+      <rect x="18" y="20" width="38" height="38" rx="8" fill="#38bdf8" fill-opacity=".16"/>
+      <path d="M28 38H46M37 29V47" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+      <text x="72" y="43" fill="#e8eef6" font-size="19" font-weight="700">API Gateway</text>
+      <text x="18" y="94" fill="#8b9cb0" font-size="15">Secure API endpoint</text>
+      <text x="18" y="116" fill="#8b9cb0" font-size="15">receives request</text>
+    </g>
+    <g transform="translate(620 125)">
+      <rect width="220" height="130" rx="14" fill="#161d28" stroke="#38bdf8" stroke-opacity=".55"/>
+      <rect x="18" y="20" width="38" height="38" rx="8" fill="#38bdf8" fill-opacity=".16"/>
+      <path d="M30 31L40 38L30 45M44 31V45" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="72" y="43" fill="#e8eef6" font-size="19" font-weight="700">AWS Lambda</text>
+      <text x="18" y="94" fill="#8b9cb0" font-size="15">Processes request</text>
+      <text x="18" y="116" fill="#8b9cb0" font-size="15">and prepares email</text>
+    </g>
+    <g transform="translate(905 125)">
+      <rect width="245" height="130" rx="14" fill="#161d28" stroke="#34d399" stroke-opacity=".7"/>
+      <rect x="18" y="20" width="38" height="38" rx="8" fill="#34d399" fill-opacity=".15"/>
+      <path d="M27 31H47V47H27ZM27 32L37 40L47 32" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linejoin="round"/>
+      <text x="72" y="43" fill="#e8eef6" font-size="19" font-weight="700">Amazon SES</text>
+      <text x="18" y="94" fill="#8b9cb0" font-size="15">Emails the company</text>
+      <text x="18" y="116" fill="#8b9cb0" font-size="15">owner for follow-up</text>
+    </g>
+  </g>
+</svg>

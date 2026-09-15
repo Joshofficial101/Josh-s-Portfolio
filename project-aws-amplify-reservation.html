@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Company reservation website hosted with AWS Amplify and a Lambda workflow for forwarding reservation requests to the owner. Joshua McLaughlin portfolio project.">
+  <title>AWS Amplify Reservation Website | Joshua McLaughlin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html">Joshua McLaughlin<span></span></a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html#about">About</a>
+        <a href="index.html#skills">Skills</a>
+        <a href="index.html#projects">Projects</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <article class="section-inner project-detail">
+      <a class="project-back" href="aws-projects.html">← Back to AWS projects</a>
+      <header class="project-detail-header">
+        <span class="section-label">Project</span>
+        <div class="project-tags">
+          <span class="tag">AWS</span>
+          <span class="tag">Amplify</span>
+          <span class="tag">Lambda</span>
+        </div>
+        <h1>AWS Amplify Reservation Website</h1>
+      </header>
+      <div class="project-detail-body">
+        <section class="project-detail-section" aria-labelledby="reservation-overview">
+          <h2 id="reservation-overview">Overview</h2>
+          <p class="project-detail-intro">
+            I am building a new website for a company that gives customers a simple way to submit reservation requests online. The site is deployed with AWS Amplify, with AWS Lambda handling the server-side work needed to deliver each request to the business owner.
+          </p>
+          <a class="btn btn-primary" href="https://main.d12lufeoimvmnn.amplifyapp.com/index.html" target="_blank" rel="noopener noreferrer">View current test website &rarr;</a>
+          <p>
+            <strong>Note:</strong> The website is currently running on an AWS Amplify-generated domain. The company plans to keep its existing domain name and will provide access within one to two weeks after website approval. Route 53 can be used for DNS hosting or a full domain transfer, depending on the company's preference.
+          </p>
+        </section>
+
+        <section class="project-detail-section" aria-labelledby="customer-requests">
+          <h2 id="customer-requests">Customer Requests</h2>
+          <ul class="project-detail-steps">
+            <li>Updated front-end styling</li>
+            <li>A dedicated reservation page</li>
+            <li>Very low maintenance</li>
+            <li>Easy content and reservation updates</li>
+          </ul>
+        </section>
+
+        <section class="project-detail-section" aria-labelledby="reservation-architecture">
+          <h2 id="reservation-architecture">Architecture</h2>
+          <ol class="project-detail-steps">
+            <li>
+              <strong>Customer-facing website</strong>
+              <p>
+                Customers can browse the company website and complete a reservation form with the details the owner needs to review the request.
+              </p>
+            </li>
+            <li>
+              <strong>AWS Amplify hosting</strong>
+              <p>
+                AWS Amplify hosts and deploys the website, providing a managed cloud deployment workflow for the public-facing application.
+              </p>
+              <p>
+                I chose Amplify instead of a standalone S3-hosted site because it connects directly to the GitHub repository and provides Git-driven CI/CD. Pushing updates to the connected branch can automatically build and deploy the website, making routine deployment and maintenance straightforward.
+              </p>
+              <p>
+                S3 static hosting is also a valid option, but a similar automated deployment workflow would need to be configured separately—for example, with GitHub Actions or AWS CodePipeline and CodeBuild. Amplify keeps that source-to-deployment workflow together in one managed service for this project.
+              </p>
+            </li>
+            <li>
+              <strong>Reservation request processing</strong>
+              <p>
+                When a customer submits the reservation form, the website sends the request to an AWS Lambda function. The function processes the submitted details and forwards the reservation request to the company owner for follow-up.
+              </p>
+            </li>
+          </ol>
+        </section>
+
+        <section class="project-detail-section" aria-labelledby="reservation-email-workflow">
+          <h2 id="reservation-email-workflow">Reservation Email Workflow</h2>
+          <figure class="project-detail-figure">
+            <img
+              src="assets/reservation-email-workflow.svg"
+              alt="Reservation form sends customer details to API Gateway, which invokes AWS Lambda. Lambda uses Amazon SES to email the company owner."
+              loading="lazy"
+            >
+            <figcaption>Reservation form &rarr; API Gateway &rarr; Lambda &rarr; Amazon SES &rarr; company owner</figcaption>
+          </figure>
+        </section>
+
+        <section class="project-detail-section" aria-labelledby="reservation-email-setup">
+          <h2 id="reservation-email-setup">Reservation Email Setup</h2>
+          <ol class="project-detail-steps">
+            <li>
+              <strong>Create the Lambda function and SES role</strong>
+              <p>
+                I created the Lambda function <code class="project-detail-code">paintball-reservation-request</code> using Python 3.14. I configured it with a custom execution role so the function can write logs to CloudWatch and send reservation notifications through Amazon SES.
+              </p>
+              <p>
+                The role includes the AWS-managed <code class="project-detail-code">AWSLambdaBasicExecutionRole</code> policy for CloudWatch logging and an additional policy granting <code class="project-detail-code">ses:SendEmail</code>. This gives the function the permission it needs to send the reservation email to the company owner.
+              </p>
+              <div class="project-detail-step-media project-detail-step-media--compact">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/lambda-function-create.png"
+                    alt="AWS Lambda Create function page showing the paintball-reservation-request function name, Python 3.14 runtime, and selected custom execution role."
+                    loading="lazy"
+                  >
+                  <figcaption>Creating the <code>paintball-reservation-request</code> Lambda function with the custom execution role.</figcaption>
+                </figure>
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/lambda-ses-role.png"
+                    alt="AWS Create role page showing AWSLambdaBasicExecutionRole and an additional policy allowing ses SendEmail for the paintball reservation request Lambda function."
+                    loading="lazy"
+                  >
+                  <figcaption>Lambda execution role with CloudWatch logging and Amazon SES send-email permission.</figcaption>
+                </figure>
+              </div>
+            </li>
+            <li>
+              <strong>Verify the email identity in Amazon SES</strong>
+              <p>
+                Before Lambda can send a reservation notification, I verified the sending email address in Amazon SES. In the SES console, I opened <strong>Configuration</strong>, selected <strong>Verified identities</strong>, chose <strong>Create identity</strong>, selected <strong>Email address</strong>, and entered the email address to use for reservation notifications.
+              </p>
+              <p>
+                After selecting <strong>Create identity</strong>, Amazon SES sends a verification message to that inbox. Opening the message and confirming the verification link completes the identity verification.
+              </p>
+              <div class="project-detail-step-media project-detail-step-media--compact">
+                <figure class="project-detail-figure project-detail-figure--step">
+                  <img
+                    src="assets/ses-verified-email-identity.png"
+                    alt="Amazon SES Create identity page with Email address selected and an email address entered for verification."
+                    loading="lazy"
+                  >
+                  <figcaption>Creating an Amazon SES email identity for reservation notifications.</figcaption>
+                </figure>
+              </div>
+            </li>
+          </ol>
+        </section>
+
+        <section class="project-detail-section" aria-labelledby="reservation-goals">
+          <h2 id="reservation-goals">Project goals</h2>
+          <p>
+            The goal is to give the company a professional, reliable web presence while making reservation inquiries easier to manage. Using managed AWS services keeps the deployment streamlined and separates the public website from the server-side request workflow.
+          </p>
+        </section>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>© <span id="year"></span> Joshua McLaughlin. Built for GitHub Pages and job applications.</p>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+  <script src="script.js" defer></script>
+</body>
+</html>
